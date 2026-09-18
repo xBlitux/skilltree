@@ -125,11 +125,11 @@ Die PNGs unter `wireframes/` bleiben unverändert und dienen als visuelle Refere
 
 | Datei | Weiterhin maßgeblicher Inhalt / Abweichung |
 |---|---|
-| `Startseite_Default(3).png` | Seitenaufbau, Dashboard, Mainframe, Footer; gezeichneten Taxonomiegraph durch Inhaltsverzeichnis ersetzen |
-| `Mainframe_default(1).png` | Masken- und Simulationssymbole; graphische Taxonomie und ihre Zoomsteuerung entfallen |
-| `Mainframe_aktive_Masken(1).png` | Maskenzustände und Gruppen-/Listenwechsel; Notiz zur Vereinigung von Soll und persönlichem Ist ist überholt |
-| `Mainframe_Skill-Liste(2).png` | Gruppenname/-status, Skill-Liste, Pfadaufruf, Zurück; graphbezogene Steuerungen sind keine Pflicht für Listen |
-| `Entwicklungspfad_spezifisch(1).png` | Separater DAG, Zielskill, Personenauswahl, Zurück, Ansichtssteuerung; Verbleibend/Vollständig gemäß S-06 unabhängig von verkürzter Zeichnungsbeschriftung |
+| `Startseite_Default.png` | Seitenaufbau, Dashboard, Mainframe, Footer; gezeichneten Taxonomiegraph durch Inhaltsverzeichnis ersetzen |
+| `Mainframe_default.png` | Masken- und Simulationssymbole; graphische Taxonomie und ihre Zoomsteuerung entfallen |
+| `Mainframe_aktive_Masken.png` | Maskenzustände und Gruppen-/Listenwechsel; Notiz zur Vereinigung von Soll und persönlichem Ist ist überholt |
+| `Mainframe_Skill-Liste-2.png` | Gruppenname/-status, Skill-Liste, Pfadaufruf, Zurück; graphbezogene Steuerungen sind keine Pflicht für Listen |
+| `Entwicklungspfad_spezifisch.png` | Separater DAG, Zielskill, Personenauswahl, Zurück, Ansichtssteuerung; Verbleibend/Vollständig gemäß S-06 unabhängig von verkürzter Zeichnungsbeschriftung |
 | `Knowledge_Graph_Taxonomie.png` | Nur historische Inspiration für die verworfene Taxonomiegraph-Variante; keine Umsetzungsvorgabe |
 
 Nicht vollständig gezeichnete grüne Tabelle, Simulationsmenü und Hover-Texte bleiben Teil der beschriebenen Bedienung. Es müssen keine weiteren Wireframes vor Entwicklungsbeginn erstellt werden.

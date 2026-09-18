@@ -1,0 +1,26 @@
+:root {
+  color: #1f2937;
+  background: #f8fafc;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  box-sizing: border-box;
+  max-width: 72rem;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.status[data-state='ready'] {
+  color: #15803d;
+}
+
+.status[data-state='error'] {
+  color: #b91c1c;
+}
+

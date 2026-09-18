@@ -1,0 +1,25 @@
+{
+    "name": "skilltree/mva",
+    "description": "Webbasiertes MVA zur skillbasierten Personalentwicklung",
+    "license": "proprietary",
+    "type": "project",
+    "require": {
+        "php": "^8.2",
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "slim/psr7": "^1.7",
+        "slim/slim": "^4.0",
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Skilltree\\": "src/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "skilltree-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "test": "vitest run",
+    "typecheck": "vue-tsc -b"
+  },
+  "dependencies": {
+    "cytoscape": "^3.0.0",
+    "vue": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vue/tsconfig": "^0.8.0",
+    "typescript": "~5.9.0",
+    "vite": "^7.0.0",
+    "vitest": "^4.1.11",
+    "vue-tsc": "^3.0.0"
+  }
+}
