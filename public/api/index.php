@@ -6,6 +6,8 @@ use Dotenv\Dotenv;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Skilltree\Infrastructure\Database\ConnectionFactory;
+use Skilltree\Infrastructure\Database\AnalysisRepository;
+use Skilltree\Http\AnalysisAction;
 use Slim\Factory\AppFactory;
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
@@ -65,5 +67,9 @@ $app->get('/health/database', static function (
         ], 503);
     }
 });
+
+$app->get('/analysis', new AnalysisAction(
+    static fn () => (new AnalysisRepository(ConnectionFactory::fromEnvironment()))->load(),
+));
 
 $app->run();

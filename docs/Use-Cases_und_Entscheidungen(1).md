@@ -110,6 +110,84 @@ Die folgenden Abläufe referenzieren den Katalog. Sie erzeugen keine zusätzlich
 | UC-09: Ausfall simulieren | Simulationssymbol öffnen; Aufgaben/Personen aus- oder wieder einschließen; Menü schließen; weitere Ansichten öffnen | Alle Ergebnisse verwenden denselben Filterzustand; keine Datenänderung. Ausgeschlossene Person ist weder Wissensträger noch Kandidat. G-15, A-01/A-09/A-13/A-15/A-16 |
 | UC-10: Navigieren und zurücksetzen | Zurück, Reset oder Start auslösen | Unterschiedliche Wirkungen gemäß Abschnitt 4. DAG aus Skill-Liste führt zurück zur Liste; DAG aus Kandidatenübersicht zurück zu dieser Übersicht. S-08, G-15 |
 
+### Technischer Stand zu UC-01: Kernberechnung (Schritt 3)
+
+Implementierter Anteil: D-07, D-08, A-01 bis A-05; leere Mengen gemäß F-09, eindeutige Zählung gemäß G-09, UND-Verknüpfung gemäß G-13 und Ablehnung von Zyklen gemäß G-12. Dies ist die berechnete Grundlage für UC-01; Dashboard, Taxonomieoberfläche und deren vollständige Abnahme folgen später.
+
+`GET /api/analysis` (lokal `http://localhost/skilltree/public/api/analysis`) berechnet den ungefilterten Ausgangszustand der genau einen vorbereiteten Organisationseinheit. Es gibt in diesem Schritt keine Abfrageparameter für Masken, Personenwahl oder Simulation. Alle Aufgaben und Mitarbeitenden dieser Einheit fließen ein. PDO lädt die direkten Zuordnungen und globalen Voraussetzungen innerhalb einer konsistenten Lesetransaktion; die Fachberechnung erzeugt daraus den Ergebnisstand. Es werden keine impliziten Zuordnungen oder Ergebnisse gespeichert (A-15/A-16).
+
+| Antwortfeld | Bedeutung |
+|---|---|
+| `organisation` | ID und Name der vorbereiteten Einheit |
+| `summary` | Anzahl Aufgaben, Mitarbeitende, eindeutige Soll-/Ist-Skills und Ampelzahlen in der Reihenfolge `red`, `yellow`, `green` |
+| `required_skill_ids` | Eindeutige Soll-Skills einschließlich aller Voraussetzungen |
+| `available_skill_ids` | Vereinigung der Skillbestände aller Mitarbeitenden einschließlich Voraussetzungen, auch außerhalb des Solls |
+| `skills` | Eine Zeile pro Soll-Skill: `id`, `name`, `skill_group_id`, `carrier_count`, `employee_ids`, `status` |
+| `tasks` | ID, Name, `direct_skill_ids` und vollständig hergeleitete `required_skill_ids` je Aufgabe |
+| `employees` | ID, Vor-/Nachname, `direct_skill_ids` und vollständig hergeleitete `available_skill_ids` je Person |
+
+Skill-ID-Mengen und die Soll-Skillliste sind numerisch nach ID sortiert. Die Gruppen-ID dient nur der thematischen Zuordnung und wird nicht als Skill gezählt. `employee_ids` macht die eindeutige Trägerzählung nachvollziehbar. `status` lautet `red` bei 0, `yellow` bei 1 und `green` ab 2 Personen. Ist-Skills außerhalb des Solls beeinflussen die Ampelzahlen nicht.
+
+Beispiel für den um einen DAG erweiterten synthetischen Datensatz (Ausschnitt aus der HTTP-200-Antwort):
+
+```json
+{
+  "summary": {
+    "task_count": 10,
+    "employee_count": 5,
+    "required_skill_count": 26,
+    "available_skill_count": 23,
+    "counts": { "red": 3, "yellow": 7, "green": 16 }
+  }
+}
+```
+
+Konkrete Prüfwerte: Datenanalyse (ID 1) hat Träger `[1, 2, 4]` und ist grün; Budgetplanung (ID 14) hat Träger `[1]` und ist gelb; Krisenkommunikation (ID 19) und Datenmigration (ID 20) haben jeweils `[]` und sind rot.
+
+Automatisiertes Vererbungsbeispiel aus Abschnitt 2: Die Aufgabe verlangt Z; Z benötigt B; B benötigt A. Besitzt eine Person B, ergeben sich Soll `{A, B, Z}`, Ist `{A, B}` und Ampel 1 rot / 2 gelb / 0 grün. Mehrere Besitzwege und mehrere Aufgaben zählen einen Skill weiterhin nur einmal. Die Voraussetzungen dieses Beispiels existieren nur im Testprozess und werden nicht in den vereinbarten Datenbankbestand eingefügt.
+
+Fehlerfälle: HTTP 409 mit `error.code = invalid_dataset` bei fehlender/mehrdeutiger Organisation, unbekannten Skillreferenzen oder zyklischen Voraussetzungen; HTTP 503 mit `error.code = database_unavailable` bei fehlender Konfiguration oder Datenbankfehler. Fehlerantworten enthalten keine Teilberechnung oder Zugangsdaten. Alle Analyseantworten verwenden `Cache-Control: no-store`.
+
+Prüfung: `composer test` für die Fach- und HTTP-Tests ohne Datenbank; `composer test:database` für den lesenden Abgleich des lokalen 26-Skill-Seeds einschließlich der indirekten Soll-/Ist-Skills. Vollständige Aufrufanleitung und geprüfte Ergebnisse stehen in der README.
+
+### Ergänzter Test-DAG: indirekte Soll- und Ist-Skills
+
+Auf ausdrücklichen Nutzerwunsch wurde der ursprüngliche Testbestand um sechs Skills (IDs 21 bis 26) und zwölf Kanten ergänzt. Die ursprünglichen direkten Zuordnungen bleiben erhalten; keiner der sechs neuen Skills erhält eine direkte Aufgaben- oder Mitarbeiterzuordnung. Der vollständige Seed liegt in `database/testdata_seed.sql`. Alle Abhängigkeiten sind synthetische Testannahmen; der Fachkatalog wurde nicht verändert.
+
+Das Diagramm zeigt alle zwölf gespeicherten Kanten in der Richtung Voraussetzung → abhängiger Skill. Die übrigen 15 Skills haben keine Voraussetzungen und sind hier nicht abgebildet.
+
+```mermaid
+flowchart LR
+    s21["21 Datenverständnis"] --> s22["22 Statistische Grundlagen"]
+    s21 --> s23["23 Datenaufbereitung"]
+    s22 --> s1["1 Datenanalyse"]
+    s23 --> s1
+    s22 --> s3["3 Datenvisualisierung"]
+    s21 --> s24["24 Migrationsplanung"]
+    s24 --> s20["20 Datenmigration"]
+    s23 --> s20
+    s4["4 SQL-Grundlagen"] --> s20
+    s21 --> s26["26 Rechengrundlagen"]
+    s26 --> s25["25 Kostenrechnung"]
+    s25 --> s14["14 Budgetplanung"]
+```
+
+Abnahme nach D-07/D-08 und A-01 bis A-05:
+
+| Fall | Erwartetes Ergebnis |
+|---|---|
+| 20 direkt benötigte Skills plus vollständige Voraussetzungshülle | 26 eindeutige Soll-Skills, davon sechs ausschließlich implizit |
+| Datenverständnis (21), über mehrere Zweige erreicht | Ein Soll-Skill, fünf eindeutige Wissensträger, grün |
+| Statistische Grundlagen (22) | Fünf Wissensträger, grün |
+| Datenaufbereitung (23) | Anna, Ben und David, drei Wissensträger, grün |
+| Migrationsplanung (24), Voraussetzung der roten Datenmigration | Im Soll enthalten, null Wissensträger, rot |
+| Kostenrechnung (25) und Rechengrundlagen (26) | Jeweils Anna Adler als indirekte Wissensträgerin, gelb |
+| Gesamtampel | 3 rot / 7 gelb / 16 grün; 23 eindeutige Ist-Skills |
+
+Aufgabe 9 (`Beschaffung vorbereiten`) hat `direct_skill_ids: [14,15]`, aber `required_skill_ids: [14,15,21,25,26]`. Annas `available_skill_ids` enthalten entsprechend die nur implizit besessenen Skills 21, 22, 23, 25 und 26. Für sie zählt Skill 21 trotz mehrerer Besitzwege nur einmal. Die vorhandene Kernberechnung aus Schritt 3 erzeugt diese Ergebnisse ohne Änderung ihrer Fachlogik.
+
+Die Erweiterung wurde additiv und transaktional eingespielt; Zyklusfreiheit wurde vor dem Commit geprüft. Anschließend wurden alle 26 Bewertungen, die zwölf Kanten, sämtliche Aufgabenhüllen, die impliziten Besitzmengen und die unveränderten direkten Zuordnungszahlen mit dem Lesebenutzer geprüft. Der XAMPP-Endpunkt liefert die erwarteten neuen Werte. Die automatisierten Fachtests prüfen zusätzlich die Ablehnung von Selbstverweisen und indirekten Zyklen, ohne solche Fehler in die lokale Datenbank zu schreiben.
+
 ### Simulationsfälle zu UC-09
 
 | Zustand | Erwartetes Ergebnis |
