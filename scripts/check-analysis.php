@@ -31,7 +31,22 @@ try {
         }
     };
 
-    $check(count($data->skills) === 26, 'Erwartet: 26 Skills.');
+    $check(count($data->skills) === 29, 'Erwartet: 29 Skills.');
+    $check(count($data->groups) === 10, 'Erwartet: 10 Gruppen.');
+    $parents = array_column($data->groups, 'parent_skill_group_id', 'id');
+    foreach ($data->skills as $skill) {
+        $seen = []; $group = $skill['skill_group_id'];
+        while ($group !== null) {
+            $check(!isset($seen[$group]) && array_key_exists($group, $parents), 'Ungueltige Hierarchie.');
+            $seen[$group] = true; $group = $parents[$group];
+        }
+        $check(count($seen) === 4, 'Erwartet: vier Gruppenebenen je Skill.');
+    }
+    $development = (new \Skilltree\Domain\Analysis\DevelopmentAnalysis())->calculate($data, $result);
+    $check($development['estimated_skill_ids'] === range(1, 26), 'Die drei freien Skills duerfen nicht geschaetzt sein.');
+    $migration = array_column($development['candidates'], null, 'skill_id')[20];
+    $check(array_column($migration['slots'], 'employee_id') === [2, 4, 1], 'Migration: Ben, David, Anna erwartet.');
+    $check(array_column($migration['slots'], 'distance') === [2, 2, 3], 'Migration: Distanzen 2, 2, 3 erwartet.');
     $check($data->prerequisites === [
         1 => [22, 23], 3 => [22], 14 => [25], 20 => [4, 23, 24],
         22 => [21], 23 => [21], 24 => [21], 25 => [26], 26 => [21],
@@ -82,6 +97,7 @@ try {
     }
 
     echo "OK: testdata_skilltree, 10 Aufgaben, 5 Personen, Soll=26, Ist=23, Rot=3, Gelb=7, Gruen=16.\n";
+    echo "29 Katalogskills, 10 Gruppen, vier Ebenen und Kandidaten/Distanzen der Datenmigration stimmen.\n";
     echo "Alle 26 Skillbewertungen, 12 DAG-Kanten, transitiven Aufgabenmengen und impliziten Wissenstraeger stimmen.\n";
     echo "6 Skills sind ausschliesslich implizit im Soll. Direkte Zuordnungen: 20 Aufgaben-Skills / 45 Mitarbeiter-Skills. Nur lesend geprueft.\n";
 } catch (PDOException $exception) {

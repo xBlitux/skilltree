@@ -1,6 +1,6 @@
 # Anforderungskatalog – Lesefassung
 
-**Stand:** 18.09.2026 – eingefroren. **54 aktive Anforderungen.**
+**Stand:** Fachstand 18.09.2026; A-07 auf Nutzeranweisung am 19.09.2026 geändert; 54 aktive Anforderungen.
 
 Automatisch erzeugt aus `Anforderungskatalog_16092026.xlsx`. IDs, Prioritäten und Anforderungstexte sind identisch. Die Excel ist die führende Quelle; diese Datei nicht unabhängig bearbeiten. Zusammenführungen und Prioritätsänderungen sind in `Use-Cases_und_Entscheidungen(1).md`, Abschnitt 8, nachgewiesen.
 
@@ -156,7 +156,7 @@ Das Dashboard muss die Anzahl eindeutiger aktueller Soll-Skills je Ampelkategori
 
 ### A-07 — Muss
 
-Die grüne Kategorieübersicht muss eine Tabelle mit einer Zeile je eingeschlossenem Mitarbeiter anzeigen: Name des Mitarbeiters und alle von ihm getragenen grünen Soll-Skills.
+Die grüne Kategorieübersicht muss eine Tabelle mit einer Zeile je grünem Soll-Skill anzeigen: zuerst die Skill-Bezeichnung, danach alle eingeschlossenen Mitarbeitenden, die diesen Skill tragen. Ein Klick auf die Skill-Bezeichnung öffnet unabhängig von der Mitarbeitermaske den allgemeinen Entwicklungspfad gemäß S-01/S-07; ist kein geschätzter Pfad verfügbar, erscheint die schließbare Warnbox.
 
 ### A-08 — Muss
 

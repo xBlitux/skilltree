@@ -114,4 +114,22 @@ INSERT INTO `skill_prerequisite` (`skill_id`, `prerequisite_skill_id`) VALUES
     (25, 26), (26, 21);
 -- END DAG EXTENSION
 
+-- BEGIN TAXONOMY EXTENSION
+-- Four group levels: root -> field -> subject -> existing leaf group.
+INSERT INTO `skill_group` (`id`, `parent_skill_group_id`, `name`, `esco_code`) VALUES
+    (5, 1, 'Datenkompetenzen', 'TEST-L2-A'),
+    (6, 5, 'Daten verarbeiten und analysieren', 'TEST-L3-A'),
+    (7, 1, 'Organisationskompetenzen', 'TEST-L2-B'),
+    (8, 7, 'Organisation gestalten', 'TEST-L3-B'),
+    (9, 1, 'Soziale Kompetenzen', 'TEST-L2-C'),
+    (10, 9, 'Zusammenarbeit gestalten', 'TEST-L3-C');
+UPDATE `skill_group` SET `parent_skill_group_id` = 6 WHERE `id` = 2;
+UPDATE `skill_group` SET `parent_skill_group_id` = 8 WHERE `id` = 3;
+UPDATE `skill_group` SET `parent_skill_group_id` = 10 WHERE `id` = 4;
+INSERT INTO `skill` (`id`, `skill_group_id`, `name`, `description`, `origin`) VALUES
+    (27, 2, 'Geodatenkartierung', 'Synthetischer Katalogskill ausserhalb von Soll und Ist, nicht geschaetzt.', 'test'),
+    (28, 3, 'Veranstaltungslogistik', 'Synthetischer Katalogskill ausserhalb von Soll und Ist, nicht geschaetzt.', 'test'),
+    (29, 4, 'Fremdsprachliche Korrespondenz', 'Synthetischer Katalogskill ausserhalb von Soll und Ist, nicht geschaetzt.', 'test');
+-- END TAXONOMY EXTENSION
+
 COMMIT;

@@ -12,6 +12,7 @@ use RuntimeException;
 use Skilltree\Domain\Analysis\AnalysisDataset;
 use Skilltree\Domain\Analysis\InvalidDataset;
 use Skilltree\Domain\Analysis\SkillAnalysis;
+use Skilltree\Domain\Analysis\DevelopmentAnalysis;
 
 final class AnalysisAction
 {
@@ -24,7 +25,9 @@ final class AnalysisAction
     {
         $status = 200;
         try {
-            $payload = (new SkillAnalysis())->calculate(($this->loadDataset)());
+            $dataset = ($this->loadDataset)();
+            $payload = (new SkillAnalysis())->calculate($dataset);
+            $payload['development'] = (new DevelopmentAnalysis())->calculate($dataset, $payload);
         } catch (InvalidDataset $exception) {
             $status = 409;
             $payload = ['error' => ['code' => 'invalid_dataset', 'message' => $exception->getMessage()]];

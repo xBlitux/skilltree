@@ -1,3 +1,4 @@
+import type { Development } from './development'
 export type Status = 'red' | 'yellow' | 'green'
 export type Color = Status | 'neutral'
 export interface Skill { id: number; name: string; skill_group_id: number }
@@ -5,6 +6,7 @@ export interface Group { id: number; name: string; parent_skill_group_id: number
 export interface RatedSkill extends Skill { status: Status; carrier_count: number; employee_ids: number[] }
 export interface Employee { id: number; first_name: string; last_name: string; available_skill_ids: number[] }
 export interface Analysis {
+  development: Development
   organisation: { id: number; name: string }
   summary: { task_count: number; employee_count: number; required_skill_count: number; available_skill_count: number; counts: Record<Status, number> }
   required_skill_ids: number[]

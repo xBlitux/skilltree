@@ -103,7 +103,7 @@ Die folgenden Abläufe referenzieren den Katalog. Sie erzeugen keine zusätzlich
 | UC-02: Gruppen und Skills erkunden | Gruppen auf-/zuklappen; Gruppe ohne Untergruppen auswählen; Skill-Liste im Mainframe lesen; zurückgehen | Gruppenname und Status sowie Skillbewertungen sichtbar; Kontext und Filter bleiben erhalten. Eingeklappte rote Skills beeinflussen weiterhin ihre Vorfahrengruppen. F-02/F-06/F-07, S-08 |
 | UC-03: Organisationsmaske wechseln | Maske aus-/einschalten | Gesamter Katalog beziehungsweise aktueller Soll-Ausschnitt. Person und Simulation bleiben erhalten; Dashboardzahlen unverändert. F-04/F-10, A-06 |
 | UC-04: Person auswählen | Eine Person wählen, wechseln oder über Keiner abwählen | Aktueller Ausschnitt erhält persönliche Besitzbewertung beziehungsweise wieder Organisationsbewertung. Keine Erweiterung durch zusätzliche Ist-Skills; Dashboard und Kategorieübersichten bleiben organisationsbezogen. F-11, D-08 |
-| UC-05: Kategorie öffnen | Dashboardzahl oder Kategoriename anklicken | Grün: Mitarbeitertabelle mit grünen Soll-Skills; Gelb/Rot: aufklappbare Skill-Details. Gelb zeigt einzigen Wissensträger. Zurück stellt vorherige Ansicht her. A-06–A-08/A-17, S-08 |
+| UC-05: Kategorie öffnen | Dashboardzahl oder Kategoriename anklicken | Grün: eine Zeile pro grünem Soll-Skill, Skill-Bezeichnung zuerst, zugehörige Mitarbeitende danach; Skilllink öffnet unabhängig von der Mitarbeitermaske den allgemeinen DAG. Gelb/Rot: aufklappbare Skill-Details. Gelb zeigt einzigen Wissensträger. Zurück stellt vorherige Ansicht her. A-06–A-08/A-17, S-08 |
 | UC-06: Kandidaten prüfen | Rotes/gelbes Skilldetail öffnen; Kandidaten, Distanzen und Empfehlungen betrachten; Person anwählen | Höchstens drei reale Kandidaten, unbesetzte Plätze erkennbar; Sortierung und Empfehlungen wie Abschnitt 3. Personenlink öffnet verbleibenden DAG. A-09–A-12/A-17, S-02–S-04/S-09 |
 | UC-07: Allgemeinen DAG öffnen | Skill ohne Person öffnen oder im DAG Allgemein wählen | Verfügbarkeitsprüfung nach Abschnitt 2; vollständiger DAG mit Zielskill oder Warnbox. Keine persönliche Besitzbewertung. Organisationsmaske entfernt keine Voraussetzungen. S-01/S-07 |
 | UC-08: Personenbezogenen DAG erkunden | Skill mit Person oder Kandidatenlink öffnen; Verbleibend/Vollständig umschalten; Person wechseln oder Allgemein wählen | Kürzung pro Zweig; vollständige Ansicht behält Personenfarben. Distanz bleibt bei Darstellungswechsel gleich. D-08, S-04–S-07 |
@@ -197,6 +197,38 @@ Die Erweiterung wurde additiv und transaktional eingespielt; Zyklusfreiheit wurd
 | Weder Aufgaben noch Mitarbeitende | Dashboard 0/0/0; vollständige Taxonomie navigierbar |
 | Mehrere Aufgaben benötigen denselben Skill; eine wird ausgeschlossen | Skill bleibt im Soll, solange eine eingeschlossene Aufgabe ihn direkt oder implizit benötigt |
 
+### Technischer Stand zu UC-02 bis UC-08/UC-10: Schritte 4 bis 6 (19.09.2026)
+
+Schritt 4 wurde vom Nutzer abgenommen. Schritte 5/6 ergänzen A-07 bis A-12/A-17 und S-01 bis S-09. Simulation (UC-09) bleibt Schritt 7; ihre noch deaktivierte Schaltfläche stellt keine aktive Simulation dar.
+
+`GET /api/analysis` liefert zusätzlich zur Kernberechnung:
+
+| Antwortfeld | Bedeutung |
+|---|---|
+| `taxonomy.groups` | Vollständige thematische Hierarchie mit `id`, `name`, `parent_skill_group_id` (Wurzel: null) |
+| `taxonomy.skills` | Vollständiger Katalog; ausdrücklich auch Skills außerhalb von Soll/Ist |
+| `development.estimated_skill_ids` | Nach S-01 aus ungefilterten Aufgaben und eigenen Voraussetzungen bestimmte Pfadverfügbarkeit, unabhängig von Ansichtsfiltern |
+| `development.edges` | Globale Voraussetzungen als `{source: Voraussetzung, target: abhängiger Skill}` |
+| `development.candidates` | Je rotem/gelbem Skill `skill_id`, genau drei `slots`, `minimum_distance` und zwei unabhängige Empfehlungsflags |
+
+Ein besetzter Slot enthält `employee_id`, `first_name`, `last_name`, `distance`; unbesetzte Slots sind JSON `null`. Ohne Kandidaten ist auch `minimum_distance` null. `recommendations.distance_threshold` bedeutet kleinste Distanz mindestens 3; `recommendations.unfilled_slots` bedeutet weniger als drei zulässige interne Personen. Bei gleicher Distanz wird nach Nachname, Vorname und schließlich ID sortiert; Umlaute zählen wie ihre Grundbuchstaben, ß wie ss. Bei Gelb wird der einzige Träger ausgeschlossen. Alle Angaben entstehen aus demselben Datenbank-Snapshot wie das Dashboard; im Frontend werden nur Auswahl und DAG-Projektion daraus abgeleitet. Kein zusätzlicher Datenabruf pro Klick und keine Stammdatenänderung.
+
+Beispiel Datenmigration (20): `slots` enthalten Ben Berger (2), David Dreher (2), Anna Adler (3); `minimum_distance: 2`, beide Empfehlungsflags false. Budgetplanung (14): Anna ist Trägerin, nicht Kandidatin; Ben, Carla und David haben jeweils Distanz 3, deshalb `distance_threshold: true`.
+
+Darstellungsentscheidungen innerhalb des bestätigten Rahmens:
+
+- Allgemeiner DAG: vollständige Voraussetzungen, neutrale Knoten, Zielskill stärker umrandet; Pfeile von Voraussetzung zum abhängigen Skill, von links nach rechts. Zoom/Verschieben mit Maus sowie Tasten/Schaltflächen; gleichwertige Textliste unter dem Graphen.
+- Personenauswahl im DAG und Mitarbeitermaske verwenden dieselbe ausgewählte Person. Kandidatenlinks öffnen Verbleibend. Personenwechsel startet ebenfalls Verbleibend; Allgemein hebt den Personenbezug auf. Vollständig behält Besitzfarben und Distanz. Bereits vorhandener Zielskill: Verbleibend zeigt einen grünen Zielknoten bei Distanz 0.
+- Skilllinks der Kategorieübersichten öffnen Allgemein; Kandidatenlinks öffnen den jeweiligen persönlichen Pfad. In der Taxonomie gilt die aktuelle Personenauswahl gemäß S-04. Nicht geschätzte Skills öffnen nur eine schließbare Warnbox in der vorhandenen Ansicht.
+- Zurück restauriert die tatsächliche vorherige Ansicht mit Masken, Person, geöffneten Gruppen/Skilldetails und Scrollposition. DAG-Zoom wird bei erneutem Öffnen auf Einpassen gesetzt. Reset passt nur den DAG ein beziehungsweise klappt die aktuelle Taxonomie/Kategorie zu und setzt deren Scrollposition zurück; Person und Organisationsmaske bleiben erhalten. Start verwirft den gesamten Navigationszustand.
+- Organisationsmaske: nur Soll, außer bei leerem Soll (vollständiger Zugang). Ohne Maske bleiben Nicht-Soll-Skills neutral; bei Personenauswahl sind sie grün/rot nach Besitz. Gruppen erben die kritischste relevante Farbe, persönlich rot sobald ein angezeigter Nachfahre fehlt. Leere Wurzelgruppen bleiben neutral sichtbar.
+
+### Testdaten-Ergänzung für Schritte 5/6
+
+Der synthetische Seed umfasst nun 29 Skills und zehn Gruppen. Jede Skillliste liegt nach vier Gruppenebenen: Testtaxonomie → Kompetenzfeld → Themenbereich → ursprüngliche Blattgruppe. Die bisherigen Skills behalten ihre Blattgruppen; lediglich deren Eltern wurden geändert. Sechs Gruppen wurden ergänzt. Geodatenkartierung (27), Veranstaltungslogistik (28) und Fremdsprachliche Korrespondenz (29) besitzen weder Aufgaben-/Personenzuordnungen noch Voraussetzungskanten. Sie gehören auch transitiv weder zu Soll noch zu Ist und sind nicht geschätzt. Sie werden bei deaktivierter Organisationsmaske sichtbar; Pfadaufrufe zeigen die Warnbox. Die bekannten Werte Soll=26, Ist=23, Ampel=3/7/16 bleiben unverändert.
+
+Die Erweiterung erfolgt ausschließlich gegen das geprüfte lokale `testdata_skilltree` über `scripts/extend-testdata-taxonomy.php --apply`; ohne Flag prüft das Skript nur. Es lehnt fremde oder bereits erweiterte Ausgangsbestände ab. Der vollständige Seed enthält denselben markierten Erweiterungsblock; der löschende Seed wurde für diese Erweiterung nicht importiert.
+
 ## 6. Wireframes und ihre Geltung
 
 Die PNGs unter `wireframes/` bleiben unverändert und dienen als visuelle Referenzen. Verbindlich sind Katalog und dieses Dokument; alte Zeichnungsnotizen erweitern sie nicht.
@@ -206,11 +238,15 @@ Die PNGs unter `wireframes/` bleiben unverändert und dienen als visuelle Refere
 | `Startseite_Default.png` | Seitenaufbau, Dashboard, Mainframe, Footer; gezeichneten Taxonomiegraph durch Inhaltsverzeichnis ersetzen |
 | `Mainframe_default.png` | Masken- und Simulationssymbole; graphische Taxonomie und ihre Zoomsteuerung entfallen |
 | `Mainframe_aktive_Masken.png` | Maskenzustände und Gruppen-/Listenwechsel; Notiz zur Vereinigung von Soll und persönlichem Ist ist überholt |
-| `Mainframe_Skill-Liste-2.png` | Gruppenname/-status, Skill-Liste, Pfadaufruf, Zurück; graphbezogene Steuerungen sind keine Pflicht für Listen |
+| `Mainframe_Skill-Liste.png`, `Mainframe_Skill-Liste-2.png` | Gruppenname/-status, Skill-Liste, Pfadaufruf, Zurück; graphbezogene Steuerungen sind keine Pflicht für Listen |
+| `Mainframe_gruen.png` | Nachgereicht am 19.09.2026: Skill zuerst, Mitarbeitende danach; Skilllink öffnet Allgemein. A-07 wurde ausdrücklich entsprechend geändert |
+| `Mainframe_Gelb.png`, `Mainframe_Rot.png` | Aufklappbare Skillbereiche und farbige Kategorieüberschrift |
+| `Kandidaten_Gelb.png`, `Kandidaten_Rot.png` | Drei Kandidatenplätze, Distanz, Pfadlink, bei Gelb einziger Wissensträger |
+| `Entwicklungspfad_allgemein.png`, `Entwicklungspfad_Wechsel.png` | Allgemeiner DAG und Wechsel zwischen Allgemein und Personenbezug |
 | `Entwicklungspfad_spezifisch.png` | Separater DAG, Zielskill, Personenauswahl, Zurück, Ansichtssteuerung; Verbleibend/Vollständig gemäß S-06 unabhängig von verkürzter Zeichnungsbeschriftung |
 | `Knowledge_Graph_Taxonomie.png` | Nur historische Inspiration für die verworfene Taxonomiegraph-Variante; keine Umsetzungsvorgabe |
 
-Nicht vollständig gezeichnete grüne Tabelle, Simulationsmenü und Hover-Texte bleiben Teil der beschriebenen Bedienung. Es müssen keine weiteren Wireframes vor Entwicklungsbeginn erstellt werden.
+Simulationsmenü und Hover-Texte bleiben Teil der beschriebenen Bedienung. Es müssen keine weiteren Wireframes vor Entwicklungsbeginn erstellt werden.
 
 ## 7. Spielraum bei der Implementierung
 
@@ -219,6 +255,8 @@ Es bestehen keine offenen fachlichen Blocker für den Entwicklungsstart. Folgend
 Diese Details werden beim jeweiligen Feature innerhalb der bestehenden Regeln entschieden und knapp hier nachgetragen. Sie dürfen keine Ampelgrenzen, Distanzen, Kandidatenfilter oder Umfangsgrenzen ändern. Vor Umsetzung der Gruppennavigation ist anhand der Daten zu prüfen, ob Skills direkt an Gruppen mit Untergruppen hängen; die Datenprüfung ist keine neue Pflegefunktion. Nur wenn daraus ein tatsächlicher fachlicher Widerspruch entsteht, wird er gezielt geklärt.
 
 ## 8. Nachweis der Konsolidierung zum 18.09.2026
+
+**Ausdrückliche Änderung vom 19.09.2026:** A-07 wurde auf Nutzeranweisung und anhand des nachgereichten `Mainframe_gruen.png` von einer mitarbeiterbezogenen auf eine skillbezogene Tabelle umgestellt. Der Skilllink öffnet ausdrücklich Allgemein, auch bei aktiver Mitarbeitermaske. Excel, daraus neu erzeugte Lesefassung und UC-05 wurden synchron aktualisiert; alle anderen Anforderungstexte und Prioritäten bleiben unverändert. Der eingefrorene Ursprungsstand bleibt in Git nachvollziehbar. `scripts/export-requirements.ps1 -Check` prüft die Übereinstimmung der 54 Anforderungen.
 
 Der Katalog enthält **54 aktive Anforderungen statt zuvor 56**. Alle fortgeführten IDs sind erhalten; IDs werden nicht neu vergeben oder umnummeriert.
 

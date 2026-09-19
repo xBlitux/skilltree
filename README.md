@@ -3,7 +3,7 @@
 Webbasiertes Minimum Viable Artifact zur Unterstützung von Personalbedarfs-, Wissensbewahrungs- und Personalentwicklungsentscheidungen im Rahmen einer Bachelorarbeit.
 
 **Fachstand:** eingefroren am 18.09.2026.  
-**Technischer Stand dieses Pakets:** Kernberechnung für transitive Soll-/Ist-Skills, eindeutige Wissensträgerzählung und Ampel ist implementiert und über die Slim-API prüfbar. Vue-/TypeScript-Frontend und Testgerüst sind eingerichtet; Dashboard und Taxonomienavigation folgen in Schritt 4.
+**Technischer Stand:** Schritte 1–6 sind implementiert: Kernberechnung, Dashboard, hierarchische Taxonomie, Kategorieübersichten, Entwicklungskandidaten und allgemeiner/personenbezogener Entwicklungs-DAG. Simulation folgt in Schritt 7. A-07 wurde auf ausdrücklichen Nutzerwunsch am 19.09.2026 zur skillbezogenen grünen Tabelle geändert.
 **Zeitbudget:** etwa 6–7 Tage Umsetzung.
 
 ## Einstieg
@@ -98,11 +98,11 @@ Der Datenbank-Prüfpunkt gibt nur Status und Datenbanknamen zurück, keine Zugan
 | Datenbank bereitstellen | `testdata_skilltree` mit Schema und synthetischem Datensatz vorhanden; Soll/Ist und Ampel lesend geprüft |
 | Anwendung starten | Technischer Rahmen über XAMPP unter `http://localhost/skilltree/public/` erreichbar |
 | Frontend bauen | `npm run build` erfolgreich geprüft |
-| Automatisierte Tests ausführen | `composer test`: 19 Tests / 56 Assertions erfolgreich; `composer test:database`: synthetischer Datensatz erfolgreich geprüft. Frontend-Basistest aus Schritt 1 unverändert |
+| Automatisierte Tests ausführen | Fachtests: `composer test`; lesender Seedabgleich: `composer test:database`; Frontend: `npm test`; lokale Edge-Klicktests: `npm run test:e2e` (aus `frontend/`, nach Build, Apache/MariaDB aktiv) |
 
 ### Schritt 3 ohne Dashboard testen
 
-Bearbeitet: D-07, D-08 und A-01 bis A-05. Zusätzlich berücksichtigt die Berechnung G-09/G-12/G-13 (eindeutige Skills, DAG ohne Zyklen, UND-Voraussetzungen), F-09 (leere Mengen), A-15 (keine Speicherung) und den gemeinsamen Berechnungsstand nach A-16. Die Oberfläche, Simulation und Entwicklungskandidaten sind noch nicht implementiert.
+Bearbeitet in Schritt 3: D-07, D-08 und A-01 bis A-05. Zusätzlich berücksichtigt die Berechnung G-09/G-12/G-13 (eindeutige Skills, DAG ohne Zyklen, UND-Voraussetzungen), F-09 (leere Mengen), A-15 (keine Speicherung) und den gemeinsamen Berechnungsstand nach A-16. Diese direkte API-Prüfung funktioniert weiterhin unabhängig von der inzwischen ergänzten Oberfläche.
 
 Bei laufendem XAMPP-Apache und MariaDB im Browser öffnen:
 
@@ -136,13 +136,41 @@ composer test:database
 
 `composer test:database` lädt `.env` intern, verlangt den lokalen Datenbanknamen `testdata_skilltree` und den Benutzer `skilltree_test_reader` und vergleicht alle 26 Skillbewertungen, Wissensträger, zwölf DAG-Kanten und transitiven Aufgabenmengen mit dem vereinbarten Seed. Er prüft zusätzlich, dass die sechs neuen Skills weder Aufgaben noch Mitarbeitenden direkt zugeordnet sind und trotzdem im Soll beziehungsweise im impliziten Ist erscheinen. Er führt nur lesende Abfragen aus und importiert oder verändert nichts. Nach bewusster Änderung des Seeds müssen seine erwarteten Werte entsprechend angepasst werden.
 
-Unter XAMPP tatsächlich geprüft: HTTP 200 am Analyse-Endpunkt, JSON/UTF-8, `Cache-Control: no-store` und die oben angegebenen Werte. Voraussetzungsketten und gemeinsame Grundlagen sind sowohl mit Arbeitsspeicher-Testdaten als auch mit dem erweiterten MariaDB-Testdatensatz geprüft. Eine visuelle Abnahme von Dashboard und Navigation folgt erst in Schritt 4.
+Unter XAMPP tatsächlich geprüft: HTTP 200 am Analyse-Endpunkt, JSON/UTF-8, `Cache-Control: no-store` und die oben angegebenen Werte. Voraussetzungsketten und gemeinsame Grundlagen sind sowohl mit Arbeitsspeicher-Testdaten als auch mit dem erweiterten MariaDB-Testdatensatz geprüft. Dashboard und Navigation wurden anschließend in Schritt 4 vom Nutzer abgenommen.
+
+### Schritte 5/6 im Browser prüfen
+
+Öffnen: `http://localhost/skilltree/public/` (gegebenenfalls Strg+F5). Ein weiterer Entwicklungsschritt ist zum Testen nicht erforderlich.
+
+1. **Kritisch → Datenmigration aufklappen:** Ben Berger (Distanz 2), David Dreher (2), Anna Adler (3). Ben oder seinen Pfadlink anklicken: persönlicher verbleibender DAG, Distanz 2. Vollständig behält die Distanz; Allgemein zeigt den neutralen vollständigen DAG. Zurück erhält die geöffnete Kandidatenbox.
+2. **Handlungsbedarf → Budgetplanung:** Anna Adler ist einzige Trägerin und ausgeschlossen; Ben, Carla und David haben Distanz 3. Empfehlung zur Prüfung zusätzlicher/externer Maßnahmen erscheint.
+3. **Unkritisch:** 16 Zeilen, jeweils Skill zuerst und Trägernamen danach. Datenanalyse anklicken: allgemeiner DAG. Anna wählen: Distanz 0, verbleibend ein grüner Zielknoten; vollständig vier vorhandene Knoten.
+4. **Start → Testtaxonomie → Datenkompetenzen → Daten verarbeiten und analysieren → Analyse und Daten:** vier Gruppenebenen, danach Skillliste. Datenverständnis öffnet als geschätzte Grundlage einen einzelnen Zielknoten. Personenauswahl in der Taxonomie wird beim Skillaufruf übernommen.
+5. **Organisationsmaske deaktivieren:** Geodatenkartierung wird zusätzlich neutral sichtbar. Anklicken zeigt die schließbare Warnung statt eines erfundenen Pfads. Die anderen beiden freien Testskills liegen in den anderen Blattgruppen. Dashboard bleibt 3/7/16.
+6. **DAG-Steuerung:** mit Maus verschieben/zoomen oder Pfeiltasten und +/− verwenden. Reset passt den Graphen ein, ohne Personenbezug/Pfadumfang zu ändern. Die aufklappbare Textdarstellung enthält dieselben Knoten und Kanten.
+
+Die API liefert Kategorieempfehlungen, Pfadverfügbarkeit und Kanten zusammen mit Dashboard und Taxonomie in einer Antwort; Feldbeschreibung und Beispiele stehen bei UC-02 bis UC-08 im Use-Case-Dokument. Neue Fachlogik: `src/Domain/Analysis/DevelopmentAnalysis.php`; DAG-Projektion: `frontend/src/domain/development.ts`; Darstellung: `CategoryOverview.vue` und `DevelopmentGraph.vue`. Cytoscape 3.34.3 war bereits installiert; keine neue Laufzeitabhängigkeit wurde für Schritte 5/6 ergänzt. Playwright 1.63.0 nutzt den vorhandenen lokalen Edge für Browsertests. Der Vite-Entwicklungsserver leitet `/api` an den lokalen XAMPP-Pfad weiter; der ausgelieferte Build benötigt keinen Node-Server.
+
+Der zusätzliche synthetische Datenstand enthält **29 Skills, zehn Gruppen und vier Hierarchieebenen**, weiterhin 26 Soll-/23 Ist-Skills und zwölf DAG-Kanten. Neue Skills 27–29 sind komplett unzugeordnet und nicht geschätzt. `php scripts/extend-testdata-taxonomy.php --apply` wurde einmalig transaktional auf `testdata_skilltree` ausgeführt; ein erneuter Aufruf wird abgelehnt. Ohne Flag erfolgt nur die Ausgangsprüfung. `database/testdata_seed.sql` enthält denselben Erweiterungsblock zur Reproduktion. Die früheren Angaben zum 26-Skill-DAG unten beschreiben dessen unveränderte fachliche Teilmenge.
+
+Katalogpflege: `powershell -NoProfile -File scripts/export-requirements.ps1 -Check` prüft alle 54 Anforderungen gegen Excel. Ohne Flag regeneriert das Skript die Lesefassung. `-ApplyGreenRevision` ist ausschließlich die dokumentierte A-07-Änderung vom 19.09.2026, kein allgemeiner Editor.
+
+Tatsächlich geprüft am 19.09.2026:
+
+- `composer test`: 25 Tests, 96 Assertions erfolgreich.
+- `composer test:database`: Soll/Ist, alle Bewertungen, zwölf Kanten, vier Gruppenebenen, freie Katalogskills und Kandidaten für Datenmigration erfolgreich lesend geprüft.
+- `npm test`: 16 Tests erfolgreich (Masken/Farbvererbung, Distanz, Restpfad, gemeinsame Anschlussknoten, vollständige/neutralisierte Ansichten und Pfadverfügbarkeit).
+- `npm run build`: TypeScript und Vite erfolgreich; Cytoscape wird erst beim ersten Pfadaufruf nachgeladen.
+- `npm run test:e2e`: sechs Edge-Browsertests unter XAMPP erfolgreich, einschließlich realem Datenbank-Snapshot, Navigation, Kandidaten, allgemeinem/persönlichem DAG, Warnbox und grüner Tabelle. Leeres Soll, API-Ausfall und unbesetzte Kandidatenplätze werden im Browser durch abgefangene synthetische API-Antworten geprüft, ohne Datenbankänderung.
+- Excel-/Markdown-Abgleich und `git diff --check` erfolgreich; lokale Zugangsdaten und Browser-Testartefakte bleiben von Git ausgeschlossen.
+
+Noch nicht geprüft: Echtdaten/Produktivdatenbank, Leistungsgrenzen mit realen großen ESCO-Pfaden, andere Browser sowie Simulation (noch nicht implementiert). Visuelle Feinabstimmung ist auf Nutzerwunsch nach den Grundfunktionen vorgesehen. Browserbilder wurden lokal kontrolliert; sie ersetzen nicht die persönliche Abnahme der Wireframe-Nähe.
 
 ## Datenbank und erste fachliche Prüfung
 
 Der SQL-Export enthält löschende Tabellenanweisungen. Ein Import erfolgt ausschließlich in die dafür identifizierte Entwicklungs-/Testdatenbank; die vorbereitete Originaldatenbank bleibt erhalten. Ein Git-Commit sichert keine Datenbankinhalte.
 
-Für die Entwicklungsdatenbank liegt unter `database/testdata_seed.sql` ein rein synthetischer, reproduzierbarer Testdatensatz vor. Er ersetzt beim Import alle vorhandenen Inhalte der acht Fachtabellen und darf deshalb ausschließlich gegen die eindeutig geprüfte Datenbank `testdata_skilltree` ausgeführt werden. Enthalten sind eine Organisationseinheit, fünf fiktive Mitarbeitende, zehn Aufgaben und 26 Skills mit zwölf Entwicklungsvoraussetzungen. Davon sind 20 Skills direkt und sechs ausschließlich implizit im Soll. Erwartete organisationsbezogene Ampel: 3 rot, 7 gelb und 16 grün; eindeutiger Ist-Bestand: 23 Skills.
+Für die Entwicklungsdatenbank liegt unter `database/testdata_seed.sql` ein rein synthetischer, reproduzierbarer Testdatensatz vor. Er ersetzt beim Import alle vorhandenen Inhalte der acht Fachtabellen und darf deshalb ausschließlich gegen die eindeutig geprüfte Datenbank `testdata_skilltree` ausgeführt werden. Enthalten sind eine Organisationseinheit, fünf fiktive Mitarbeitende, zehn Aufgaben und 29 Skills mit zwölf Entwicklungsvoraussetzungen. Davon sind 20 Skills direkt und sechs ausschließlich implizit im Soll; drei weitere liegen vollständig außerhalb von Soll/Ist. Erwartete organisationsbezogene Ampel: 3 rot, 7 gelb und 16 grün; eindeutiger Ist-Bestand: 23 Skills.
 
 Die DAG-Ergänzung wurde auf ausdrücklichen Wunsch nach Schritt 3 vorgenommen. Die ursprünglichen 20 Skills, 20 Aufgaben-Skill-Zuordnungen und 45 Mitarbeiter-Skill-Zuordnungen bleiben unverändert. Der frühere Stand ohne Voraussetzungen ergab 2/5/13; die zusätzlich indirekt benötigten Skills ergeben 1/2/3 und damit insgesamt 3/7/16. Es handelt sich um synthetische Testannahmen, keine fachlich validierte Schätzung der realen Organisation.
 
