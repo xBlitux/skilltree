@@ -71,6 +71,7 @@ final class SkillAnalysis
             'skills' => $skills,
             'tasks' => $tasks,
             'employees' => $employees,
+            'taxonomy' => ['groups' => $data->groups, 'skills' => array_values($data->skills)],
         ];
     }
 }

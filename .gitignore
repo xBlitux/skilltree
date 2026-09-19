@@ -6,3 +6,5 @@
 /public/index.html
 /.phpunit.cache/
 /frontend/coverage/
+/frontend/test-results/
+/frontend/playwright-report/

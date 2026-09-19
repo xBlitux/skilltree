@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "typecheck": "vue-tsc -b"
   },
   "dependencies": {
@@ -14,6 +15,7 @@
     "vue": "^3.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "^24.0.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.8.0",

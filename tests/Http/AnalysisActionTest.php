@@ -28,6 +28,23 @@ final class AnalysisActionTest extends TestCase
         self::assertSame([], json_decode($body, true, flags: JSON_THROW_ON_ERROR)['skills']);
     }
 
+    public function testIncludesWholeCatalogAndHierarchyEvenWithoutRequiredSkills(): void
+    {
+        $groups = [
+            ['id' => 1, 'name' => 'Wurzel', 'parent_skill_group_id' => null],
+            ['id' => 2, 'name' => 'Blatt', 'parent_skill_group_id' => 1],
+        ];
+        $skills = [7 => ['id' => 7, 'name' => 'Zusatzskill', 'skill_group_id' => 2]];
+        $response = $this->request(static fn () => new AnalysisDataset(
+            ['id' => 1, 'name' => 'Test'], $skills, [], [], [], $groups,
+        ));
+        $body = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame([], $body['skills']);
+        self::assertSame(['red' => 0, 'yellow' => 0, 'green' => 0], $body['summary']['counts']);
+        self::assertSame($groups, $body['taxonomy']['groups']);
+        self::assertSame(array_values($skills), $body['taxonomy']['skills']);
+    }
+
     public function testInvalidPreparedDatasetReturnsConflictWithoutPartialCalculation(): void
     {
         $response = $this->request(static function (): never {

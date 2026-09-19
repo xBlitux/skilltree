@@ -78,9 +78,16 @@ final class AnalysisRepository
                 $prerequisites[(int) $row['skill_id']][] = (int) $row['prerequisite_skill_id'];
             }
 
+            $groups = [];
+            foreach ($this->connection->query('SELECT id, parent_skill_group_id, name FROM skill_group ORDER BY id') as $row) {
+                $groups[] = [
+                    'id' => (int) $row['id'], 'name' => $row['name'],
+                    'parent_skill_group_id' => $row['parent_skill_group_id'] === null ? null : (int) $row['parent_skill_group_id'],
+                ];
+            }
             $this->connection->commit();
 
-            return new AnalysisDataset($organisation, $skills, array_values($tasks), array_values($employees), $prerequisites);
+            return new AnalysisDataset($organisation, $skills, array_values($tasks), array_values($employees), $prerequisites, $groups);
         } catch (Throwable $exception) {
             if ($this->connection->inTransaction()) {
                 $this->connection->rollBack();
