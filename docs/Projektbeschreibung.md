@@ -13,7 +13,7 @@ Das Artefakt dient der explorativen Entscheidungsunterstützung. Eine Fertigkeit
 
 - Genau eine vorbereitete Organisationseinheit mit Echtdaten ist für Entwicklung und Evaluation hinterlegt und standardmäßig ausgewählt.
 - Soll und Ist werden aus den gespeicherten Zuordnungen einschließlich sämtlicher direkter und indirekter Voraussetzungen hergeleitet. Die impliziten Zuordnungen werden nicht zusätzlich dauerhaft gespeichert.
-- Die Taxonomie wird als **hierarchisches, aufklappbares Inhaltsverzeichnis** umgesetzt. Gruppen ohne Untergruppen öffnen ihre Skill-Liste im Mainframe. Masken, Farbvererbung und Zurück-Navigation bleiben erhalten. Ein Taxonomiegraph gehört nicht zum MVA.
+- Die Taxonomie wird als **hierarchisches, aufklappbares Inhaltsverzeichnis** und seit der ausdrücklichen Versuchsfreigabe vom 20.09.2026 zusätzlich als **umschaltbarer Gruppengraph** umgesetzt (F-02). Der Graph startet nur mit der obersten Gruppenebene; Kreise zeigen Ampelfarbe und eindeutige Skillzahl, Namen stehen darunter. Gruppen ohne Untergruppen öffnen weiterhin ihre Skill-Liste. Masken, Farbvererbung und Zurück-Navigation bleiben erhalten.
 - Ein **separater Entwicklungs-DAG** zeigt allgemeine oder personenbezogene Entwicklungspfade. Bei Personenbezug sind verbleibende und vollständige Darstellung umschaltbar.
 - Dashboard, Kategorieübersichten, Kandidaten und Simulation beruhen auf demselben aktuellen Berechnungszustand. Die Auswahl einer Person verändert nicht die organisationsbezogene Managementampel.
 - Die Webanwendung wertet vorbereitete Daten aus. Es gibt keine Stammdatenpflege, keine Bearbeitung der Taxonomie, keine laufende LLM-Schätzung und keine dauerhafte Speicherung von Simulation oder Berechnungsergebnissen.
@@ -49,6 +49,6 @@ Der bisherige technische Vorschlag umfasst PHP mit Slim/PDO, Vue mit TypeScript,
 - [Anforderungskatalog_16092026.xlsx](Anforderungskatalog_16092026.xlsx): führender Katalog mit stabilen IDs und Prioritäten. Der historische Dateiname bleibt erhalten; der Inhaltsstand ist 18.09.2026.
 - [Anforderungskatalog_16092026.md](Anforderungskatalog_16092026.md): automatisch erzeugte, textgleiche Lesefassung für den Coding-Assistenten; nicht separat pflegen.
 - [Use-Cases_und_Entscheidungen(1).md](Use-Cases_und_Entscheidungen%281%29.md): Bedienabläufe, konkrete Beispiele, Referenzzuordnung und Konsolidierungsnachweis.
-- `wireframes/`: unveränderte PNG-Referenzen. Textliche Festlegungen gelten bei Abweichungen, insbesondere beim entfallenen Taxonomiegraphen.
+- `wireframes/`: unveränderte PNG-Referenzen. Textliche Festlegungen gelten bei Abweichungen. `Knowledge_Graph_Taxonomie.png` dient seit dem 20.09.2026 als visuelle Referenz für den freigegebenen Graphversuch.
 
 Prioritäten: **Muss** = verbindliche Umsetzungspflicht; **Sollte** = Umsetzungswunsch; **Wird** = verbindliche Umsetzungsabsicht beziehungsweise festgelegte Modellierungsentscheidung; **Darf nicht** = verbindlicher Ausschluss. Der eingefrorene Stand wird nur durch eine ausdrückliche neue fachliche Entscheidung geändert. Normale technische Detailentscheidungen erweitern den Funktionsumfang nicht.

@@ -92,6 +92,10 @@ td:first-child { min-width: 150px; }
 .graph-zoom { position: absolute; right: .5rem; bottom: .5rem; display: flex; gap: .3rem; }
 .graph-description { margin-top: .8rem; font-size: .8rem; }
 .graph-description summary { cursor: pointer; }
+.taxonomy-switch { display: flex; gap: .25rem; margin-bottom: .7rem; }
+.taxonomy-switch button { min-width: 80px; padding: .4rem .8rem; }
+.taxonomy-switch button[aria-pressed="true"] { color: white; background: #315b48; border-color: #315b48; }
+.mainframe-content:has(.taxonomy-graph-frame) { height: auto; min-height: 440px; }
 .warning { display: flex; justify-content: space-between; align-items: center; gap: 1rem; border-color: #926000; }
 .simulation-dialog { width: min(880px, 94vw); max-height: 85vh; overflow: auto; padding: 1.5rem; color: inherit; border: 1px solid #bccfc1; border-radius: 10px; }
 .simulation-dialog::backdrop { background: #162c3b80; }

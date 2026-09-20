@@ -8,7 +8,15 @@ Webbasiertes Minimum Viable Artifact zur Unterstützung von Personalbedarfs-, Wi
 
 ## Einstieg
 
-Die Anwendung vergleicht Aufgabenbedarf und Skillbestand einer vorbereiteten Organisationseinheit, zeigt eine Managementampel und ermittelt Entwicklungskandidaten. Die Taxonomie ist ein aufklappbares Inhaltsverzeichnis mit Skill-Listen. Ein separater Entwicklungs-DAG bleibt Bestandteil des MVA. Die fachlichen Einzelregeln stehen im Katalog und in den Use-Cases.
+Die Anwendung vergleicht Aufgabenbedarf und Skillbestand einer vorbereiteten Organisationseinheit, zeigt eine Managementampel und ermittelt Entwicklungskandidaten. Die Taxonomie bietet seit dem freigegebenen Versuch vom 20.09.2026 einen aufklappbaren Gruppengraphen und das bisherige Inhaltsverzeichnis mit gemeinsamen Skill-Listen. Ein separater Entwicklungs-DAG bleibt Bestandteil des MVA. Die fachlichen Einzelregeln stehen im Katalog und in den Use-Cases.
+
+### Graphansicht ausprobieren (20.09.2026)
+
+Unter `http://localhost/skilltree/public/` gegebenenfalls mit Strg+F5 neu laden. Der Versuch startet mit **Graph**; **Baum** wechselt zum bisherigen Inhaltsverzeichnis und erhält geöffnete Gruppen. Kreise zeigen eindeutige Skillzahlen im aktuellen Maskenausschnitt und die bisherigen Gruppenfarben. Anklicken klappt Untergruppen auf/zu; Blattgruppen öffnen die bisherige Skill-Liste. Verschieben per Ziehen der Fläche oder Pfeiltasten; Zoom per Mausrad, +/− oder Schaltflächen; Einpassen zeigt alle geöffneten Gruppen. Reset klappt auf die oberste Ebene zurück, Start aktiviert zusätzlich wieder die ungefilterte Ausgangsanalyse und Graphansicht.
+
+Technik: Vue/SVG mit radialer Gruppenanordnung, keine neue Abhängigkeit. Gemeinsame Berechnung in `taxonomy.ts`, reine Anordnung in `taxonomyGraph.ts`, Darstellung in `TaxonomyGraph.vue`. Keine API- oder Datenbankänderung. F-02 wurde auf Nutzeranweisung in Excel geändert und die Lesefassung neu erzeugt; F-03/F-06/F-10/F-11 und S-08 bleiben berücksichtigt. Der ursprüngliche Fachstand ist über Git nachvollziehbar.
+
+Tatsächlich geprüft am 20.09.2026: `npm test` (20 erfolgreich), `npm run build` (TypeScript/Vite erfolgreich), 13 bestehende Edge-Browsertests unter XAMPP erfolgreich sowie drei neue Graph-Browsertests im abschließenden gezielten Lauf (`npm run test:e2e -- e2e/taxonomy-graph.spec.ts`). Die neuen Tests prüfen Auf-/Zuklappen, Zahlen, Baumwechsel, Blattlisten, Zurück/Reset, Tastatur, Zoom/Verschieben, Masken/Simulation sowie synthetisch mehrere Wurzeln, leere Gruppen und direkt zugeordnete Skills innerer Gruppen. Zwei anfängliche Fehler im neuen Test (falsche Besitzannahme und Auswahlwert für „Keiner“) wurden korrigiert. Desktop-/Mobil-Screenshots wurden visuell geprüft. Excel-/Markdown-Abgleich erfolgreich. Build/Testprozesse benötigten wegen `spawn EPERM` die Ausführung außerhalb der Sandbox. Backendtests wurden für diese reine Darstellungsänderung nicht erneut ausgeführt; Echtdaten, große Taxonomien und weitere Browser bleiben ungeprüft.
 
 ## Ablage im Repository
 

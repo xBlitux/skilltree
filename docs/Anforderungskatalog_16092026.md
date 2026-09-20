@@ -1,6 +1,6 @@
 # Anforderungskatalog – Lesefassung
 
-**Stand:** Fachstand 18.09.2026; A-07 auf Nutzeranweisung am 19.09.2026 geändert; 54 aktive Anforderungen.
+**Stand:** Fachstand 18.09.2026; A-07 am 19.09.2026 und F-02 (Graphversuch) am 20.09.2026 auf Nutzeranweisung geändert; 54 aktive Anforderungen.
 
 Automatisch erzeugt aus `Anforderungskatalog_16092026.xlsx`. IDs, Prioritäten und Anforderungstexte sind identisch. Die Excel ist die führende Quelle; diese Datei nicht unabhängig bearbeiten. Zusammenführungen und Prioritätsänderungen sind in `Use-Cases_und_Entscheidungen(1).md`, Abschnitt 8, nachgewiesen.
 
@@ -94,7 +94,7 @@ Für die hinterlegte Organisationseinheit muss der gemeinsame, vorbereitete Skil
 
 ### F-02 — Muss
 
-Die Taxonomie muss als hierarchisches, auf- und zuklappbares Inhaltsverzeichnis umgesetzt werden. Gruppen ohne Untergruppen öffnen ihre Skill-Liste im Mainframe. Die Taxonomie wird im MVA nicht als Graph dargestellt; der separate Entwicklungs-DAG bleibt bestehen.
+Die Taxonomie muss zum visuellen Vergleich zwischen hierarchischem, auf- und zuklappbarem Inhaltsverzeichnis und aufklappbarem Gruppengraphen umschaltbar sein. Die Graphansicht ist für diesen Versuch die Startansicht. Ein Klick auf eine Gruppe mit Untergruppen blendet deren direkte Untergruppen ein oder aus; Gruppen ohne Untergruppen öffnen ihre Skill-Liste im Mainframe. Skills erscheinen nicht als Graphknoten. Die Kreise übernehmen die Gruppenbewertung und zeigen die Anzahl aller eindeutigen Skills im aktuellen Maskenausschnitt unterhalb der Gruppe einschließlich direkt zugeordneter Skills, unabhängig vom Aufklappzustand. Gruppennamen stehen unter den Kreisen. Der separate Entwicklungs-DAG bleibt bestehen.
 
 ### F-03 — Muss
 
