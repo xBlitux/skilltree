@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Dotenv\Dotenv;
 use Skilltree\Domain\Analysis\SkillAnalysis;
+use Skilltree\Domain\Analysis\SimulationAnalysis;
 use Skilltree\Infrastructure\Database\AnalysisRepository;
 use Skilltree\Infrastructure\Database\ConnectionFactory;
 
@@ -96,6 +97,18 @@ try {
         }
     }
 
+    $simulation = new SimulationAnalysis();
+    $withoutAnna = $simulation->calculate($data, [], [1]);
+    $check($withoutAnna['summary']['counts'] === ['red' => 6, 'yellow' => 4, 'green' => 16], 'Ausschluss Anna: Ampel 6/4/16 erwartet.');
+    $withoutProcurement = $simulation->calculate($data, [9]);
+    $check($withoutProcurement['summary']['counts'] === ['red' => 3, 'yellow' => 3, 'green' => 16], 'Ausschluss Beschaffung: Ampel 3/3/16 erwartet.');
+    $empty = $simulation->calculate($data, range(1, 10), range(1, 5));
+    $check($empty['summary']['counts'] === ['red' => 0, 'yellow' => 0, 'green' => 0], 'Leere Simulation muss 0/0/0 liefern.');
+    $check($empty['development']['estimated_skill_ids'] === range(1, 26), 'Pfadverfuegbarkeit muss erhalten bleiben.');
+    $noEmployees = $simulation->calculate($data, [], range(1, 5));
+    $check($noEmployees['summary']['counts'] === ['red' => 26, 'yellow' => 0, 'green' => 0], 'Ohne Personen muessen alle Soll-Skills rot sein.');
+    $check(serialize((new AnalysisRepository($connection))->load()) === serialize($data), 'Die Simulation darf die gelesenen Stammdaten nicht aendern.');
+    echo "OK: Simulation ohne Anna=6/4/16, ohne Aufgabe 9=3/3/16, ohne Personen=26/0/0, ohne beide=0/0/0. Stammdaten unveraendert.\n";
     echo "OK: testdata_skilltree, 10 Aufgaben, 5 Personen, Soll=26, Ist=23, Rot=3, Gelb=7, Gruen=16.\n";
     echo "29 Katalogskills, 10 Gruppen, vier Ebenen und Kandidaten/Distanzen der Datenmigration stimmen.\n";
     echo "Alle 26 Skillbewertungen, 12 DAG-Kanten, transitiven Aufgabenmengen und impliziten Wissenstraeger stimmen.\n";

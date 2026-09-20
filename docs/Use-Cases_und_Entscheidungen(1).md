@@ -199,7 +199,7 @@ Die Erweiterung wurde additiv und transaktional eingespielt; Zyklusfreiheit wurd
 
 ### Technischer Stand zu UC-02 bis UC-08/UC-10: Schritte 4 bis 6 (19.09.2026)
 
-Schritt 4 wurde vom Nutzer abgenommen. Schritte 5/6 ergänzen A-07 bis A-12/A-17 und S-01 bis S-09. Simulation (UC-09) bleibt Schritt 7; ihre noch deaktivierte Schaltfläche stellt keine aktive Simulation dar.
+Schritte 4 bis 6 wurden vom Nutzer abgenommen. Schritte 5/6 ergänzen A-07 bis A-12/A-17 und S-01 bis S-09. Simulation (UC-09) wurde anschließend in Schritt 7 ergänzt (siehe unten).
 
 `GET /api/analysis` liefert zusätzlich zur Kernberechnung:
 
@@ -219,7 +219,7 @@ Darstellungsentscheidungen innerhalb des bestätigten Rahmens:
 
 - Allgemeiner DAG: vollständige Voraussetzungen, neutrale Knoten, Zielskill stärker umrandet; Pfeile von Voraussetzung zum abhängigen Skill, von links nach rechts. Zoom/Verschieben mit Maus sowie Tasten/Schaltflächen; gleichwertige Textliste unter dem Graphen.
 - Personenauswahl im DAG und Mitarbeitermaske verwenden dieselbe ausgewählte Person. Kandidatenlinks öffnen Verbleibend. Personenwechsel startet ebenfalls Verbleibend; Allgemein hebt den Personenbezug auf. Vollständig behält Besitzfarben und Distanz. Bereits vorhandener Zielskill: Verbleibend zeigt einen grünen Zielknoten bei Distanz 0.
-- Skilllinks der Kategorieübersichten öffnen Allgemein; Kandidatenlinks öffnen den jeweiligen persönlichen Pfad. In der Taxonomie gilt die aktuelle Personenauswahl gemäß S-04. Nicht geschätzte Skills öffnen nur eine schließbare Warnbox in der vorhandenen Ansicht.
+- Skilllinks der grünen Kategorieübersicht öffnen Allgemein (A-07). In Rot/Gelb und in der Taxonomie gilt die aktuelle Personenauswahl gemäß S-04; diese Unterscheidung wurde im Anforderungsabgleich zu Schritt 7 korrigiert. Kandidatenlinks öffnen den jeweiligen persönlichen Pfad. Nicht geschätzte Skills öffnen nur eine schließbare Warnbox in der vorhandenen Ansicht.
 - Zurück restauriert die tatsächliche vorherige Ansicht mit Masken, Person, geöffneten Gruppen/Skilldetails und Scrollposition. DAG-Zoom wird bei erneutem Öffnen auf Einpassen gesetzt. Reset passt nur den DAG ein beziehungsweise klappt die aktuelle Taxonomie/Kategorie zu und setzt deren Scrollposition zurück; Person und Organisationsmaske bleiben erhalten. Start verwirft den gesamten Navigationszustand.
 - Organisationsmaske: nur Soll, außer bei leerem Soll (vollständiger Zugang). Ohne Maske bleiben Nicht-Soll-Skills neutral; bei Personenauswahl sind sie grün/rot nach Besitz. Gruppen erben die kritischste relevante Farbe, persönlich rot sobald ein angezeigter Nachfahre fehlt. Leere Wurzelgruppen bleiben neutral sichtbar.
 
@@ -228,6 +228,37 @@ Darstellungsentscheidungen innerhalb des bestätigten Rahmens:
 Der synthetische Seed umfasst nun 29 Skills und zehn Gruppen. Jede Skillliste liegt nach vier Gruppenebenen: Testtaxonomie → Kompetenzfeld → Themenbereich → ursprüngliche Blattgruppe. Die bisherigen Skills behalten ihre Blattgruppen; lediglich deren Eltern wurden geändert. Sechs Gruppen wurden ergänzt. Geodatenkartierung (27), Veranstaltungslogistik (28) und Fremdsprachliche Korrespondenz (29) besitzen weder Aufgaben-/Personenzuordnungen noch Voraussetzungskanten. Sie gehören auch transitiv weder zu Soll noch zu Ist und sind nicht geschätzt. Sie werden bei deaktivierter Organisationsmaske sichtbar; Pfadaufrufe zeigen die Warnbox. Die bekannten Werte Soll=26, Ist=23, Ampel=3/7/16 bleiben unverändert.
 
 Die Erweiterung erfolgt ausschließlich gegen das geprüfte lokale `testdata_skilltree` über `scripts/extend-testdata-taxonomy.php --apply`; ohne Flag prüft das Skript nur. Es lehnt fremde oder bereits erweiterte Ausgangsbestände ab. Der vollständige Seed enthält denselben markierten Erweiterungsblock; der löschende Seed wurde für diese Erweiterung nicht importiert.
+
+### Technischer Stand zu UC-09/UC-10: Simulation und Navigation (20.09.2026)
+
+Implementiert: A-13/A-15/A-16, G-15 und S-08; durchgängig mit D-07/D-08, F-08/F-09/F-10/F-11, A-01 bis A-12/A-17 und S-01 verknüpft. Das Simulationssymbol öffnet einen Dialog mit allen vorbereiteten Aufgaben und Mitarbeitenden. Häkchen bedeutet eingeschlossen. Jede Änderung wird sofort berechnet; Sammelschaltflächen erlauben das Ein-/Ausschließen aller Aufgaben beziehungsweise Personen. Schließen und Escape erhalten die Auswahl. Das Symbol ist aktiv, sobald wenigstens ein Ausschluss wirksam ist.
+
+`GET /api/analysis` akzeptiert nun optionale Parameter `excluded_tasks` und `excluded_employees`, jeweils als kommagetrennte positive IDs. Beispiel: `GET /api/analysis?excluded_employees=1`. Ohne Parameter sind alle eingeschlossen. Unbekannte IDs/Parameter oder falsche Formate liefern HTTP 400 mit `error.code: invalid_filters`, ohne Teilberechnung. Die IDs werden gegen die gerade gelesene Organisation validiert; keine IDs werden in SQL eingesetzt.
+
+Jeder Aufruf liest genau einen konsistenten Snapshot. `SimulationAnalysis` filtert ausschließlich Aufgaben und Mitarbeitende für die Kernberechnung; `DevelopmentAnalysis` erhält zusätzlich die ungefilterte Datenbasis für die unveränderliche Pfadverfügbarkeit. Die Ausgabe enthält weiterhin `tasks`/`employees` als **eingeschlossene** Mengen. Das neue Feld `simulation` enthält `excluded_task_ids`, `excluded_employee_ids` und die vollständigen Auswahllisten `tasks: [{id,name}]`, `employees: [{id,first_name,last_name}]`, damit Ausgeschlossene wieder eingeschlossen werden können. Alle Ergebnisfelder werden gemeinsam ersetzt.
+
+Es gibt weder schreibende SQL-Operationen noch serverseitige Sitzungen, Cookies oder Browser-Speicherung für die Simulation. Der Filterzustand existiert nur im geöffneten Frontend und als Parameter des jeweiligen Leseaufrufs. Browser-Neuladen, ein neu geöffnetes Fenster und Start beginnen ohne Ausschlüsse. Änderungen an vorbereiteten Daten werden beim nächsten Analyseabruf (Simulation/Start/Neuladen) sichtbar; kein Hintergrund-Polling.
+
+Navigationsdetails:
+
+- **Zurück:** stellt die tatsächliche vorherige Mainframe-Ansicht mit deren Organisationsmaske, zulässiger Person, Gruppen-/Detailaufklappung und Scrollposition wieder her. Die **aktuellen Simulationsausschlüsse bleiben global bestehen**, auch wenn sie erst nach dem Öffnen der vorherigen Ansicht gesetzt wurden. Es wird kein veralteter Berechnungsstand restauriert.
+- **Reset:** scrollt die aktuelle Liste nach oben und klappt Taxonomie beziehungsweise Kategorieboxen zu; im DAG wird eingepasst. Organisationsmaske, Person, Pfadumfang und Simulation bleiben bestehen.
+- **Start:** schließt das Simulationsmenü, verwirft die Navigationshistorie, stellt die eingeklappte Taxonomie mit aktiver Organisationsmaske und ohne Person wieder her, scrollt die Seite nach oben und lädt die ungefilterte Analyse neu.
+- **Ausgeschlossene ausgewählte Person:** wird abgewählt. Ein geöffneter Pfad wird vollständig/allgemein; diese Person kann bis zur Wiedereinschließung weder in der Maske noch als Kandidat gewählt werden. Zurück reaktiviert keine inzwischen ausgeschlossene Person.
+- **Nebenläufigkeit/Fehler:** während einer Berechnung sind die betroffenen Bedienelemente gesperrt und der Ladezustand sichtbar. Start kann einen laufenden Abruf ersetzen. Abgebrochene oder verspätete Antworten überschreiben den neuen Stand nicht. Bei Fehlern bleiben alle bisherigen Ergebnisdaten und wirksamen Filter zusammen erhalten; Häkchen werden zurückgesetzt, der gewünschte Abruf kann erneut versucht werden.
+
+Abnahme mit dem lokalen synthetischen Seed:
+
+| Filter | Rot / Gelb / Grün | Weitere Prüfung |
+|---|---|---|
+| Keine Ausschlüsse | 3 / 7 / 16 | Soll 26, Ist 23 |
+| Anna Adler (1) ausgeschlossen | 6 / 4 / 16 | Budgetplanung/Kostenrechnung/Rechengrundlagen rot; Anna weder Trägerin noch Kandidatin |
+| Aufgabe Beschaffung vorbereiten (9) ausgeschlossen | 3 / 3 / 16 | Soll 22; gemeinsames Datenverständnis bleibt benötigt; Pfade zu 14/15/25/26 bleiben verfügbar |
+| Alle Mitarbeitenden ausgeschlossen | 26 / 0 / 0 | Je Skill drei leere Kandidatenplätze, Empfehlung, keine erfundene Mindestdistanz |
+| Alle Aufgaben ausgeschlossen | 0 / 0 / 0 | Vollständiger Katalog mit 29 Skills zugänglich, weiterhin 26 geschätzte Skills |
+| Aufgaben und Mitarbeitende ausgeschlossen | 0 / 0 / 0 | Vollständiger Taxonomiezugang, keine persönliche Maske auswählbar |
+
+Automatisierte Tests decken zusätzlich geteilten Aufgabenbedarf, Ausschluss/Wiedereinschluss, unveränderte Ausgangsobjekte und Fehlerantworten ab. Die vollständige Anforderungsprüfung mit Grenzen steht in `Abnahme_Schritt7.md`.
 
 ## 6. Wireframes und ihre Geltung
 

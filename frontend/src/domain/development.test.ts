@@ -4,6 +4,7 @@ import type { Analysis } from './taxonomy'
 
 function data(): Analysis {
   return {
+    simulation: { excluded_task_ids: [], excluded_employee_ids: [], tasks: [], employees: [] },
     organisation: { id: 1, name: 'Test' }, summary: { task_count: 1, employee_count: 1, required_skill_count: 8, available_skill_count: 4, counts: { red: 4, yellow: 4, green: 0 } },
     skills: [], required_skill_ids: [1, 2, 3, 4, 5, 6, 7, 8],
     taxonomy: { groups: [], skills: Array.from({ length: 9 }, (_, index) => ({ id: index + 1, name: `Skill ${index + 1}`, skill_group_id: 1 })) },

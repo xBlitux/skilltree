@@ -68,11 +68,48 @@ final class AnalysisActionTest extends TestCase
         )['error']['code']);
     }
 
-    private function request(Closure $loadDataset): \Psr\Http\Message\ResponseInterface
+    public function testSimulationUsesOneSnapshotAndDoesNotPersistBetweenRequests(): void
+    {
+        $calls = 0;
+        $load = static function () use (&$calls): AnalysisDataset {
+            $calls++;
+            return new AnalysisDataset(['id' => 1, 'name' => 'Test'],
+                [1 => ['id' => 1, 'name' => 'Skill', 'skill_group_id' => 1]],
+                [['id' => 1, 'name' => 'Aufgabe', 'direct_skill_ids' => [1]]],
+                [['id' => 1, 'first_name' => 'Test', 'last_name' => 'Person', 'direct_skill_ids' => [1]]], [],
+            );
+        };
+        $response = $this->request($load, ['excluded_employees' => '1']);
+        self::assertSame(1, $calls);
+        $body = json_decode((string) $response->getBody(), true);
+        self::assertSame(['red' => 1, 'yellow' => 0, 'green' => 0], $body['summary']['counts']);
+        self::assertSame([null, null, null], $body['development']['candidates'][0]['slots']);
+        self::assertSame([1], $body['simulation']['excluded_employee_ids']);
+        self::assertCount(1, $body['simulation']['employees']);
+        self::assertSame('no-store', $response->getHeaderLine('Cache-Control'));
+        $base = json_decode((string) $this->request($load)->getBody(), true);
+        self::assertSame(1, $base['summary']['counts']['yellow']);
+        self::assertSame([], $base['simulation']['excluded_employee_ids']);
+    }
+
+    public function testMalformedAndUnknownFiltersReturn400WithoutPartialResults(): void
+    {
+        foreach ([['excluded_tasks' => '-1'], ['excluded_tasks' => '1,'], ['excluded_tasks' => ['1']],
+            ['excluded_employees' => '1.5'], ['excluded_employees' => '9999999999999999999999'],
+            ['excluded_tasks' => '999'], ['unexpected' => '1']] as $query) {
+            $response = $this->request(static fn () => new AnalysisDataset(['id' => 1, 'name' => 'Test'], [], [], [], []), $query);
+            self::assertSame(400, $response->getStatusCode());
+            $body = json_decode((string) $response->getBody(), true);
+            self::assertSame('invalid_filters', $body['error']['code']);
+            self::assertArrayNotHasKey('summary', $body);
+        }
+    }
+
+    private function request(Closure $loadDataset, array $query = []): \Psr\Http\Message\ResponseInterface
     {
         $app = AppFactory::create();
         $app->get('/analysis', new AnalysisAction($loadDataset));
 
-        return $app->handle((new ServerRequestFactory())->createServerRequest('GET', '/analysis'));
+        return $app->handle((new ServerRequestFactory())->createServerRequest('GET', '/analysis')->withQueryParams($query));
     }
 }

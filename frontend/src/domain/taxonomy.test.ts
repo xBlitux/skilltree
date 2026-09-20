@@ -3,6 +3,7 @@ import { taxonomyView, type Analysis } from './taxonomy'
 
 export function fixture(): Analysis {
   return {
+    simulation: { excluded_task_ids: [], excluded_employee_ids: [], tasks: [], employees: [] },
     development: { estimated_skill_ids: [1, 2, 3], edges: [], candidates: [] },
     organisation: { id: 1, name: 'Testorganisation' },
     summary: { task_count: 1, employee_count: 1, required_skill_count: 3, available_skill_count: 2, counts: { red: 1, yellow: 1, green: 1 } },

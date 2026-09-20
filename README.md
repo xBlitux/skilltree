@@ -3,7 +3,7 @@
 Webbasiertes Minimum Viable Artifact zur Unterstützung von Personalbedarfs-, Wissensbewahrungs- und Personalentwicklungsentscheidungen im Rahmen einer Bachelorarbeit.
 
 **Fachstand:** eingefroren am 18.09.2026.  
-**Technischer Stand:** Schritte 1–6 sind implementiert: Kernberechnung, Dashboard, hierarchische Taxonomie, Kategorieübersichten, Entwicklungskandidaten und allgemeiner/personenbezogener Entwicklungs-DAG. Simulation folgt in Schritt 7. A-07 wurde auf ausdrücklichen Nutzerwunsch am 19.09.2026 zur skillbezogenen grünen Tabelle geändert.
+**Technischer Stand:** Schritte 1–7 sind implementiert: Kernberechnung, Dashboard, hierarchische Taxonomie, Kategorieübersichten, Entwicklungskandidaten, allgemeiner/personenbezogener Entwicklungs-DAG sowie temporäre Simulation mit Zurück/Reset/Start. A-07 wurde auf ausdrücklichen Nutzerwunsch am 19.09.2026 zur skillbezogenen grünen Tabelle geändert. Die Anforderungsprüfung vom 20.09.2026 einschließlich offener Echtdaten-/Evaluationspunkte steht in [docs/Abnahme_Schritt7.md](docs/Abnahme_Schritt7.md).
 **Zeitbudget:** etwa 6–7 Tage Umsetzung.
 
 ## Einstieg
@@ -164,7 +164,27 @@ Tatsächlich geprüft am 19.09.2026:
 - `npm run test:e2e`: sechs Edge-Browsertests unter XAMPP erfolgreich, einschließlich realem Datenbank-Snapshot, Navigation, Kandidaten, allgemeinem/persönlichem DAG, Warnbox und grüner Tabelle. Leeres Soll, API-Ausfall und unbesetzte Kandidatenplätze werden im Browser durch abgefangene synthetische API-Antworten geprüft, ohne Datenbankänderung.
 - Excel-/Markdown-Abgleich und `git diff --check` erfolgreich; lokale Zugangsdaten und Browser-Testartefakte bleiben von Git ausgeschlossen.
 
-Noch nicht geprüft: Echtdaten/Produktivdatenbank, Leistungsgrenzen mit realen großen ESCO-Pfaden, andere Browser sowie Simulation (noch nicht implementiert). Visuelle Feinabstimmung ist auf Nutzerwunsch nach den Grundfunktionen vorgesehen. Browserbilder wurden lokal kontrolliert; sie ersetzen nicht die persönliche Abnahme der Wireframe-Nähe.
+Zum damaligen Prüfstand noch nicht geprüft: Echtdaten/Produktivdatenbank, Leistungsgrenzen mit realen großen ESCO-Pfaden, andere Browser und die erst anschließend implementierte Simulation. Visuelle Feinabstimmung ist auf Nutzerwunsch nach den Grundfunktionen vorgesehen. Browserbilder wurden lokal kontrolliert; sie ersetzen nicht die persönliche Abnahme der Wireframe-Nähe.
+
+### Schritt 7: Simulation und vollständige Anforderungsprüfung
+
+Bei laufendem Apache/MariaDB die Anwendung öffnen und gegebenenfalls mit Strg+F5 neu laden. Das Simulationssymbol öffnet Aufgaben und Mitarbeitende als Checkboxlisten. Abwählen simuliert einen Ausfall; die Datenbank wird dabei nicht verändert. Schließen/Escape erhält die Auswahl. Ausgeschlossene Personen fehlen bei Trägern, Kandidaten und persönlicher Auswahl. Bei Ausschluss der ausgewählten Person wird ein geöffneter DAG allgemein.
+
+| Prüfung mit dem aktuellen Testdatensatz | Erwartung Rot/Gelb/Grün |
+|---|---|
+| Ohne Ausschlüsse | 3 / 7 / 16 |
+| Anna Adler ausschließen | 6 / 4 / 16 |
+| Nur Beschaffung vorbereiten ausschließen | 3 / 3 / 16 |
+| Alle Mitarbeitenden ausschließen | 26 / 0 / 0; drei unbesetzte Kandidatenplätze |
+| Alle Aufgaben ausschließen (mit oder ohne Personen) | 0 / 0 / 0; vollständige Taxonomie bleibt zugänglich |
+
+Zurück erhält die **aktuelle** Simulation und stellt die vorherige Mainframe-Ansicht wieder her. Reset verändert nur die Ansicht, nicht Maske, Person, Pfadumfang oder Ausschlüsse. Start schließt das Menü, leert die Historie, setzt Masken/Person/Ansicht zurück und lädt eine ungefilterte Analyse. Neuladen beziehungsweise ein neues Fenster beginnt ebenfalls ungefiltert. Fehlgeschlagene Berechnungen verändern den bisherigen wirksamen Stand nicht; ein sichtbarer Fehler erlaubt Wiederholung. Verspätete Antworten werden verworfen.
+
+API: `GET /api/analysis?excluded_tasks=9&excluded_employees=1`. Parameter optional, positive kommagetrennte IDs; fehlerhafte/unbekannte Filter liefern 400. Das Antwortfeld `simulation` enthält die bestätigten Ausschlüsse und vollständigen Wiederauswahllisten. Feldvertrag, Beispiele und Detailentscheidungen stehen bei UC-09/UC-10 im Use-Case-Dokument. Keine serverseitige Sitzung, Browser-Speicherung, neuen Pakete oder DB-Schreibrechte erforderlich.
+
+Prüfbefehle bleiben `composer test`, `composer test:database` und in `frontend/` `npm test`, `npm run build`, `npm run test:e2e`. Der vollständige Abnahmebericht ordnet jede der 54 Anforderungen einem Nachweis oder einer verbleibenden Einschränkung zu. Insbesondere ist G-04 mangels eingebundener Praxisdaten noch **nicht vollständig erfüllt**; D-10/D-11 sind hinsichtlich der echten Datenaufbereitung/ESCO-Zuordnung nicht technisch abgenommen.
+
+Tatsächlich erfolgreich geprüft am 20.09.2026: 32 Backendtests mit 159 Assertions, lesender Datenbanktest einschließlich Simulation, 20 Frontendtests, TypeScript-/Vite-Build und 13 Edge-Browsertests unter XAMPP. Excel und Lesefassung stimmen für alle 54 Anforderungen überein. Die Browsertests umfassen auch Fehler/Wiederholung, Zurück/Reset/Start, Neuladen/neues Fenster und vierstellige Dashboardzahlen auf Desktop und Mobilansicht. Datenbankinhalte wurden nicht verändert. Details und manuelle Abnahme: [Abnahme Schritt 7](docs/Abnahme_Schritt7.md).
 
 ## Datenbank und erste fachliche Prüfung
 

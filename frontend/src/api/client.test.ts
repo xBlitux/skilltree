@@ -8,6 +8,13 @@ describe('API client configuration', () => {
   it('uses the XAMPP-relative API path', () => {
     expect(analysisEndpoint).toBe('api/analysis')
   })
+  it('encodes exclusions and propagates cancellation without persisting them', async () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) })
+    vi.stubGlobal('fetch', fetch)
+    const controller = new AbortController()
+    await loadAnalysis({ excluded_task_ids: [1, 2], excluded_employee_ids: [3] }, controller.signal)
+    expect(fetch).toHaveBeenCalledWith('api/analysis?excluded_tasks=1%2C2&excluded_employees=3', expect.objectContaining({ signal: controller.signal }))
+  })
   it('requests one uncached analysis snapshot', async () => {
     const fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ taxonomy: {} }) })
     vi.stubGlobal('fetch', fetch)

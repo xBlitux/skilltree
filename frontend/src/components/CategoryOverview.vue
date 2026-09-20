@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import type { Analysis, Status } from '../domain/taxonomy'
 import StatusDot from './StatusDot.vue'
-const props = defineProps<{ data: Analysis; status: Status; expanded: Set<number> }>()
+const props = defineProps<{ data: Analysis; status: Status; expanded: Set<number>; person: number | null }>()
 const emit = defineEmits<{ toggle: [id: number]; path: [skill: number, person: number | null] }>()
 const skills = computed(() => props.data.skills.filter(skill => skill.status === props.status).sort((a, b) => a.name.localeCompare(b.name, 'de')))
 const candidates = computed(() => new Map(props.data.development.candidates.map(item => [item.skill_id, item])))
@@ -19,7 +19,7 @@ const names = (ids: number[]) => props.data.employees.filter(employee => ids.inc
     <article v-for="skill in skills" :key="skill.id" class="candidate-card" :aria-label="skill.name">
       <div class="candidate-header">
         <StatusDot :color="skill.status" />
-        <button v-if="expanded.has(skill.id)" class="text-link" @click="emit('path', skill.id, null)">{{ skill.name }}</button>
+        <button v-if="expanded.has(skill.id)" class="text-link" @click="emit('path', skill.id, person)">{{ skill.name }}</button>
         <button v-else class="candidate-title" @click="emit('toggle', skill.id)" :aria-expanded="false">{{ skill.name }}</button>
         <button class="disclosure" :aria-label="`${skill.name}: Details`" :aria-expanded="expanded.has(skill.id)" :aria-controls="`candidates-${skill.id}`" @click="emit('toggle', skill.id)">{{ expanded.has(skill.id) ? '−' : '⌄' }}</button>
       </div>
