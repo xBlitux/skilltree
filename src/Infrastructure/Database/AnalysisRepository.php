@@ -86,7 +86,7 @@ final class AnalysisRepository
                 ];
             }
             $scenarios = [];
-            foreach ($this->connection->query('SELECT id, name FROM scenario ORDER BY id LIMIT 3') as $row) {
+            foreach ($this->forOrganisation('SELECT id, name FROM scenario WHERE organisation_unit_id = ? ORDER BY id LIMIT 9', $organisationId) as $row) {
                 $statement = $this->connection->prepare('SELECT st.task_id FROM scenario_task st JOIN task t ON t.id = st.task_id WHERE st.scenario_id = ? AND t.organisation_unit_id = ? ORDER BY st.task_id');
                 $statement->execute([(int) $row['id'], $organisationId]);
                 $scenarios[] = ['id' => (int) $row['id'], 'name' => $row['name'], 'task_ids' => array_map('intval', $statement->fetchAll(PDO::FETCH_COLUMN))];

@@ -8,11 +8,13 @@ Webbasiertes Minimum Viable Artifact zur Unterstützung von Personalbedarfs-, Wi
 
 ## Erweiterungen vom 21.09.2026
 
-Organisation oben wählen; Wechsel setzt die Ansicht vollständig zurück. **Matrix** bietet Mitarbeiter-Mehrfachauswahl und Pfadlänge. Im Simulationsmenü aktivieren **1/2/3** vorbereitete Aufgabenszenarien. Rot/Gelb besitzen eine gemeinsame **maximale Distanz (1–5, Standard 3)**; weiter entfernte Kandidaten werden ausgeschlossen. Statuspunkte in Skill-Listen ohne Personenauswahl öffnen die Kategorie. Nicht geschätzte Pfade zeigen ein modales Popup mit unveränderter Scrollposition. Leere Taxonomiegruppen werden ausgeblendet.
+Organisation oben wählen; Wechsel setzt die Ansicht vollständig zurück. **Matrix** bietet Mitarbeiter-Mehrfachauswahl und Pfadlänge. Im Simulationsmenü aktivieren bis zu **neun fortlaufend nummerierte Buttons** die Szenarien der gewählten Einheit; Hover zeigt den Szenarionamen. `scenario.organisation_unit_id` ist erforderlich. Die Beispieldaten enthalten drei eigene Szenarien je Einheit. Mitarbeiter-Dropdown und Simulationsdialog schließen auch per Außenklick, ohne die Auswahl zu verlieren. Rot/Gelb besitzen eine gemeinsame **maximale Distanz (1–5, Standard 3)**; weiter entfernte Kandidaten werden ausgeschlossen. Statuspunkte in Skill-Listen ohne Personenauswahl öffnen die Kategorie. Nicht geschätzte Pfade zeigen ein modales Popup mit unveränderter Scrollposition. Leere Taxonomiegruppen werden ausgeblendet.
 
 Die Testdatenbank enthält nun drei synthetische Organisationseinheiten. Additive Einrichtung und Beispielwerte: [Featureideen](docs/Featureideen.md). Es wurden nur bestehende Anforderungen geändert (G-04/G-05, F-03/F-11, A-07/A-12, S-01), keine neuen IDs oder Prioritäten. Die folgenden älteren Prüfberichte beschreiben den jeweiligen historischen Stand.
 
 Abschließend geprüft: 33 Backendtests (216 Assertions), 20 Frontendtests, 23 Edge-Browsertests unter XAMPP, lesender Datenbankabgleich aller drei Einheiten, TypeScript-/Vite-Build und Excel-/Markdown-Abgleich erfolgreich. Zum Ausprobieren `http://localhost/skilltree/public/` mit Strg+F5 neu laden. Echtdaten, große Matrixbestände und andere Browser bleiben ungeprüft.
+
+Nach der Bedienergänzung erneut geprüft: 23 bestehende und drei neue Edge-Browsertests erfolgreich, außerdem Backend-/Frontendtests, Build und Datenbankabgleich. Die früher gemeinsam genutzten Beispielszenarien wurden in neun getrennte Szenarien aufgeteilt; Neuaufbau und einmalige Migration sind in [Featureideen](docs/Featureideen.md) beschrieben. Der vom Nutzer ergänzte Schemaexport bleibt unverändert.
 
 ## Einstieg
 

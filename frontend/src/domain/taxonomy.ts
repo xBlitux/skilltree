@@ -19,6 +19,7 @@ export interface Analysis {
 }
 export interface TreeNode extends Group { children: TreeNode[]; skills: Skill[]; count: number; color: Color }
 export const labels: Record<Color, string> = { red: 'Kritisch', yellow: 'Handlungsbedarf', green: 'Unkritisch', neutral: 'Ohne Soll-Bewertung' }
+export const statusLinkTitle = (status: Status) => `${labels[status]} • ${status === 'green' ? 'Wissensträger anzeigen' : 'Entwicklungskandidaten anzeigen'}`
 const weight: Record<Color, number> = { neutral: 0, green: 1, yellow: 2, red: 3 }
 export function taxonomyView(data: Analysis, mask: boolean, employeeId: number | null) {
   const ratings = new Map(data.skills.map(skill => [skill.id, skill.status]))

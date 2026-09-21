@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, nextTick, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onMounted, onBeforeUnmount, ref } from 'vue'
 import { useAnalysis } from './composables/useAnalysis'
 import { emptyFilters, toggleExclusion, type SimulationFilters } from './domain/simulation'
-import { labels, taxonomyView, type Status } from './domain/taxonomy'
+import { labels, statusLinkTitle, taxonomyView, type Status } from './domain/taxonomy'
 import TaxonomyBranch from './components/TaxonomyBranch.vue'
 import TaxonomyGraph from './components/TaxonomyGraph.vue'
 import SkillMap from './components/SkillMap.vue'
@@ -16,6 +16,12 @@ const DevelopmentGraph = defineAsyncComponent(() => import('./components/Develop
 type View = { kind: 'taxonomy' } | { kind: 'group'; id: number } | { kind: 'category'; status: Status } | { kind: 'path'; id: number; full: boolean }
 type Snapshot = { view: View; expanded: Set<number>; details: Set<number>; scroll: number; mask: boolean; person: number | null; taxonomyMode: 'tree' | 'graph' | 'map'; mapScroll: { x: number; y: number }; matrixPeople: number[] }
 const matrixPeople = ref<number[]>([])
+const matrixFilter = ref<HTMLDetailsElement>()
+function dismissMatrixFilter(event: MouseEvent) {
+  if (event.target instanceof Node && matrixFilter.value && !matrixFilter.value.contains(event.target)) matrixFilter.value.open = false
+}
+onMounted(() => document.addEventListener('click', dismissMatrixFilter))
+onBeforeUnmount(() => document.removeEventListener('click', dismissMatrixFilter))
 const taxonomyMode = ref<'tree' | 'graph' | 'map'>('graph')
 const mapScroll = ref({ x: 0, y: 0 })
 const mapView = ref<{ reset: () => void }>()
@@ -178,7 +184,7 @@ onMounted(() => load())
       <section id="mainframe" class="mainframe" :inert="busy" :aria-busy="busy" aria-label="Taxonomie und Skillübersichten">
         <div class="toolbar">
           <button class="mask-button" :class="{ active: mask }" :aria-pressed="mask" aria-label="Organisationsmaske" :title="mask ? 'Organisationsmaske aktiv: nur Soll-Skills' : 'Organisationsmaske aus: gesamter Katalog'" @click="mask = !mask"><MaskIcon name="organisation"/><span>Organisation</span></button>
-          <details v-if="isMap" class="matrix-filter"><summary>Mitarbeiter: {{ matrixPeople.length ? `${matrixPeople.length} ausgewählt` : 'Alle' }}</summary><div><button @click="matrixPeople = []">Alle</button><label v-for="employee in data.employees" :key="employee.id"><input v-model="matrixPeople" type="checkbox" :value="employee.id"/>{{ employee.first_name }} {{ employee.last_name }}</label></div></details><label v-else class="person-control" :class="{ active: person !== null }" title="Persönlichen Skillbesitz anzeigen"><MaskIcon name="person"/><select v-model="person" aria-label="Mitarbeitermaske" @change="pathPerson(person)"><option :value="null">Keiner</option><option v-for="employee in data.employees" :key="employee.id" :value="employee.id">{{ employee.first_name }} {{ employee.last_name }}</option></select></label>
+          <details v-if="isMap" ref="matrixFilter" class="matrix-filter"><summary>Mitarbeiter: {{ matrixPeople.length ? `${matrixPeople.length} ausgewählt` : 'Alle' }}</summary><div><button @click="matrixPeople = []">Alle</button><label v-for="employee in data.employees" :key="employee.id"><input v-model="matrixPeople" type="checkbox" :value="employee.id"/>{{ employee.first_name }} {{ employee.last_name }}</label></div></details><label v-else class="person-control" :class="{ active: person !== null }" title="Persönlichen Skillbesitz anzeigen"><MaskIcon name="person"/><select v-model="person" aria-label="Mitarbeitermaske" @change="pathPerson(person)"><option :value="null">Keiner</option><option v-for="employee in data.employees" :key="employee.id" :value="employee.id">{{ employee.first_name }} {{ employee.last_name }}</option></select></label>
           <button class="mask-button" :class="{ active: simulationActive }" :aria-pressed="simulationActive" :aria-expanded="simulationOpen" aria-label="Simulation" aria-haspopup="dialog" :title="simulationActive ? 'Simulation aktiv: Aufgaben oder Mitarbeitende ausgeschlossen' : 'Simulation: alle Aufgaben und Mitarbeitenden eingeschlossen'" @click="simulationOpen = true"><MaskIcon name="simulation"/><span>Simulation{{ simulationActive ? ' · aktiv' : '' }}</span></button>
           <button class="back-button" :disabled="!history.length" @click="back">← Zurück</button>
         </div>
@@ -189,10 +195,10 @@ onMounted(() => load())
           <p v-if="view.kind === 'taxonomy' || view.kind === 'group'" class="view-hint">{{ person !== null && !isMap ? 'Persönlicher Besitz: Grün = vorhanden, Rot = nicht vorhanden.' : 'Organisationsbewertung: Rot vor Gelb vor Grün; ohne Soll-Bedarf neutral.' }} {{ mask && data.required_skill_ids.length ? 'Nur benötigte Skills.' : 'Gesamter Skillkatalog.' }}</p>
           <template v-if="view.kind === 'taxonomy'"><SkillMap v-if="isMap" ref="mapView" :data="data" :mask="mask" :people="matrixPeople" :scroll="mapScroll" @scroll="mapScroll = $event" @path="openPath" @category="openCategory"/><TaxonomyGraph v-else-if="taxonomyMode === 'graph'" ref="taxonomyGraph" :nodes="tree.roots" :expanded="expanded" :personal="tree.personal" @toggle="toggle" @open="open({ kind: 'group', id: $event })"/><TaxonomyBranch v-else :nodes="tree.roots" :expanded="expanded" :personal="tree.personal" @toggle="toggle" @open="open({ kind: 'group', id: $event })"/><p v-if="!tree.roots.length" class="empty">Leere Liste</p></template>
           <template v-else-if="view.kind === 'group'">
-            <ul v-if="group?.skills.length" class="skill-list"><li v-for="skill in group.skills" :key="skill.id"><button v-if="listStatus(skill.id)" class="status-link" :title="labels[listStatus(skill.id)!]" :aria-label="`${skill.name}: ${labels[listStatus(skill.id)!]} öffnen`" @click="openCategory(listStatus(skill.id)!, skill.id)"><StatusDot :color="tree.color(skill.id)" /></button><StatusDot v-else :color="tree.color(skill.id)" :personal="tree.personal"/><button class="text-link" @click="openPath(skill.id, person)">{{ skill.name }}</button></li></ul><p v-else class="empty">Leere Liste</p>
+            <ul v-if="group?.skills.length" class="skill-list"><li v-for="skill in group.skills" :key="skill.id"><button v-if="listStatus(skill.id)" class="status-link" :title="statusLinkTitle(listStatus(skill.id)!)" :aria-label="`${skill.name}: ${labels[listStatus(skill.id)!]} öffnen`" @click="openCategory(listStatus(skill.id)!, skill.id)"><StatusDot :color="tree.color(skill.id)" :tooltip="statusLinkTitle(listStatus(skill.id)!)" /></button><StatusDot v-else :color="tree.color(skill.id)" :personal="tree.personal"/><button class="text-link" @click="openPath(skill.id, person)">{{ skill.name }}</button></li></ul><p v-else class="empty">Leere Liste</p>
           </template>
           <template v-else-if="view.kind === 'category'">
-            <label v-if="view.status !== 'green'" class="distance-limit">Maximale Distanz <select aria-label="Maximale Distanz" :value="data.development.maximum_distance ?? 3" @change="load({ ...data.simulation, maximum_distance: Number(($event.target as HTMLSelectElement).value) })"><option v-for="n in 5" :key="n" :value="n">{{ n }}</option></select></label>
+            <label v-if="view.status !== 'green'" class="distance-limit" title="Maximale Distanz zu Zielskills für Entwicklungskandidaten">Maximale Distanz <select aria-label="Maximale Distanz" :value="data.development.maximum_distance ?? 3" @change="load({ ...data.simulation, maximum_distance: Number(($event.target as HTMLSelectElement).value) })"><option v-for="n in 5" :key="n" :value="n">{{ n }}</option></select></label>
             <p class="view-hint">Die Organisationsübersicht bleibt unabhängig von Organisations- und Mitarbeitermaske.</p>
             <CategoryOverview :data="data" :status="view.status" :expanded="details" :person="person" @toggle="toggleDetail" @path="openPath" />
           </template>

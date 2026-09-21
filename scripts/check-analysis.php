@@ -26,9 +26,13 @@ try {
     }
     $data = (new AnalysisRepository($connection))->load();
     if (array_column($data->organisations, 'id') !== [1,2,3] || $data->scenarios[0]['task_ids'] !== [9,10]) throw new RuntimeException('Organisationen/Szenarien fehlen.');
+    if ((int)$connection->query('SELECT COUNT(*) FROM scenario_task st JOIN scenario s ON s.id=st.scenario_id JOIN task t ON t.id=st.task_id WHERE s.organisation_unit_id <> t.organisation_unit_id')->fetchColumn() !== 0) throw new RuntimeException('Organisationsfremde Szenarioaufgaben.');
     foreach ([2 => ['counts' => ['red'=>1,'yellow'=>3,'green'=>4], 'people'=>[6,7,8], 'tasks'=>[11,12,13]],
               3 => ['counts' => ['red'=>0,'yellow'=>5,'green'=>1], 'people'=>[9,10,11], 'tasks'=>[14,15,16]]] as $id => $expected) {
         $unit = (new AnalysisRepository($connection))->load($id);
+        $statement = $connection->prepare('SELECT id FROM scenario WHERE organisation_unit_id=? ORDER BY id LIMIT 9');
+        $statement->execute([$id]);
+        if (array_column($unit->scenarios,'id') !== array_map('intval',$statement->fetchAll(PDO::FETCH_COLUMN)) || count($unit->scenarios)!==3) throw new RuntimeException('Fremde oder fehlende Szenarien.');
         $unitResult = (new SimulationAnalysis())->calculate($unit);
         if ($unitResult['summary']['counts'] !== $expected['counts'] || array_column($unit->employees, 'id') !== $expected['people']
             || array_column($unit->tasks, 'id') !== $expected['tasks']) throw new RuntimeException('Falscher Organisationsausschnitt.');
