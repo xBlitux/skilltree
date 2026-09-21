@@ -11,6 +11,8 @@ import MaskIcon from './components/MaskIcon.vue'
 import CategoryOverview from './components/CategoryOverview.vue'
 import SimulationMenu from './components/SimulationMenu.vue'
 import PathWarning from './components/PathWarning.vue'
+import brandLogo from '../../src/res/Zukunft-Logo.png'
+import robotoLicense from './assets/fonts/OFL.txt?url'
 const DevelopmentGraph = defineAsyncComponent(() => import('./components/DevelopmentGraph.vue'))
 
 type View = { kind: 'taxonomy' } | { kind: 'group'; id: number } | { kind: 'category'; status: Status } | { kind: 'path'; id: number; full: boolean }
@@ -108,7 +110,7 @@ async function openCategory(status: Status, id: number) {
   const target = panel.value?.querySelector<HTMLElement>(`[data-category-skill="${id}"]`)
   target?.focus({ preventScroll: true })
   target?.scrollIntoView({ block: 'nearest' })
-  target?.animate([{ backgroundColor: '#fff0b5' }, { backgroundColor: 'transparent' }], { duration: 2200 })
+  target?.animate([{ backgroundColor: '#edf8fd' }, { backgroundColor: 'transparent' }], { duration: 2200 })
 }
 function toggle(id: number) { expanded.value.has(id) ? expanded.value.delete(id) : expanded.value.add(id) }
 function toggleDetail(id: number) { details.value.has(id) ? details.value.delete(id) : details.value.add(id) }
@@ -160,11 +162,11 @@ onMounted(() => load())
 <template>
   <a class="skip-link" href="#mainframe">Zum Inhalt</a>
   <header class="topbar">
-    <div class="brand">skill<span>tree</span><small>Personalentwicklung</small></div>
-    <label class="organisation-select">Organisationseinheit
+    <div class="brand"><img :src="brandLogo" alt="ZUKUNFT." width="692" height="136" /></div>
+    <div class="organisation-select">
       <select :value="data?.organisation.id" :disabled="busy || !data" aria-label="Organisationseinheit" @change="start(Number(($event.target as HTMLSelectElement).value))"><option v-for="organisation in data?.organisations ?? (data ? [data.organisation] : [])" :key="organisation.id" :value="organisation.id">{{ organisation.name }}</option></select>
-    </label>
-    <button class="start-button" @click="start()">Start <span aria-hidden="true">↗</span></button>
+    </div>
+    <button class="start-button" @click="start()">Start</button>
   </header>
   <main>
     <section v-if="loading" class="feedback" role="status">Die Skill-Analyse wird geladen …</section>
@@ -210,5 +212,8 @@ onMounted(() => load())
       <SimulationMenu v-if="simulationOpen" :simulation="data.simulation" :busy="busy" :error="error" @toggle="simulate" @change="load" @retry="load(requested)" @close="simulationOpen = false" />
     </template>
   </main>
-  <footer class="page-footer"><span>skilltree · Skillbasierte Personalentwicklung</span><span>Vorbereitete Daten · Nur lesende Auswertung</span></footer>
+  <footer class="page-footer">
+    <span>skilltree · Skillbasierte Personalentwicklung</span><span>Vorbereitete Daten · Nur lesende Auswertung</span>
+    <span class="font-notice">Schrift: Roboto · Copyright 2011 The Roboto Project Authors · <a :href="robotoLicense">SIL Open Font License 1.1</a></span>
+  </footer>
 </template>

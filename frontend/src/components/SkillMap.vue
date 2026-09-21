@@ -33,13 +33,13 @@ defineExpose({ reset })
 </template>
 <style scoped>
 .tooltip-label { text-decoration: underline; text-underline-offset: 3px; cursor: help; }
-.skill-map-scroll { max-height: 440px; overflow: auto; border: 1px solid #d6dfd8; border-radius: 6px; --group-width: 130px; --skill-width: 230px; }
+.skill-map-scroll { max-height: 440px; overflow: auto; border: 1px solid var(--border); border-radius: 6px; --group-width: 130px; --skill-width: 230px; }
 .skill-map { border-collapse: separate; border-spacing: 0; width: 100%; font-size: .82rem; }
-.skill-map th, .skill-map td { padding: .65rem .7rem; min-width: 75px; border-bottom: 1px solid #e0e7e2; text-align: center; background: white; vertical-align: middle; }
-.skill-map thead th { position: sticky; top: 0; z-index: 3; background: #edf3ef; height: 140px; }
-.skill-map .map-group { position: sticky; left: 0; min-width: var(--group-width); width: var(--group-width); max-width: var(--group-width); text-align: left; white-space: normal; overflow-wrap: anywhere; background: #f3f6f3; z-index: 2; }
-.skill-map .map-skill { position: sticky; left: var(--group-width); min-width: var(--skill-width); width: var(--skill-width); max-width: var(--skill-width); text-align: left; z-index: 2; border-right: 1px solid #c6d4cc; }
-.skill-map thead .map-group, .skill-map thead .map-skill { z-index: 4; background: #edf3ef; }
+.skill-map th, .skill-map td { padding: .65rem .7rem; min-width: 75px; border-bottom: 1px solid var(--border-soft); text-align: center; background: white; vertical-align: middle; }
+.skill-map thead th { position: sticky; top: 0; z-index: 3; background: var(--surface-muted); height: 140px; }
+.skill-map .map-group { position: sticky; left: 0; min-width: var(--group-width); width: var(--group-width); max-width: var(--group-width); text-align: left; white-space: normal; overflow-wrap: anywhere; background: var(--surface-muted); z-index: 2; }
+.skill-map .map-skill { position: sticky; left: var(--group-width); min-width: var(--skill-width); width: var(--skill-width); max-width: var(--skill-width); text-align: left; z-index: 2; border-right: 1px solid var(--border); }
+.skill-map thead .map-group, .skill-map thead .map-skill { z-index: 4; background: var(--surface-muted); }
 .map-person span { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; }
 .map-skill-label { display: flex; align-items: center; gap: .6rem; }
 .map-skill-label .text-link { min-width: 0; overflow-wrap: anywhere; }
@@ -47,10 +47,10 @@ defineExpose({ reset })
 .map-group-name { display: block; position: sticky; top: 155px; }
 .map-status { padding: .4rem; border: 0; background: transparent; flex: none; display: flex; }
 .map-skill-label > .status-dot { margin: .4rem; flex: none; }
-.possession { border: 2px solid #97a39d; border-radius: 50%; width: 30px; height: 30px; padding: 0; line-height: 24px; font-size: 24px; color: #7a8981; background: white; }
+.possession { border: 2px solid var(--neutral); border-radius: 50%; width: 30px; height: 30px; padding: 0; line-height: 24px; font-size: 24px; color: var(--neutral); background: white; }
 .possession.owned { color: #26704a; border-color: #53a578; background: #eef8f1; }
 .skill-map .shortage { color: #ad3038; font-weight: bold; }
-.skill-map tbody + tbody tr:first-child > * { border-top: 2px solid #b6c9bd; }
+.skill-map tbody + tbody tr:first-child > * { border-top: 2px solid var(--border); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 @media (max-width: 700px) { .skill-map-scroll { --group-width: 85px; --skill-width: 150px; } .skill-map th, .skill-map td { padding: .45rem; } .skill-map { font-size: .75rem; } }
 </style>

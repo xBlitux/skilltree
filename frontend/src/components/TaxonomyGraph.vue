@@ -105,24 +105,29 @@ defineExpose({ reset: fit })
 </template>
 
 <style scoped>
-.taxonomy-graph-frame { border-radius: 10px; overflow: hidden; background: #202427; color: #ecf0ed; border: 1px solid #39423f; }
-.taxonomy-graph-caption { display: flex; justify-content: space-between; padding: 16px 20px 0; color: #9caaa4; font-size: 11px; letter-spacing: .12em; }
+.taxonomy-graph-frame { border-radius: 10px; overflow: hidden; background: #fff; color: var(--text); border: 1px solid var(--border); }
+.taxonomy-graph-caption { display: flex; justify-content: space-between; padding: 16px 20px 0; color: var(--text-muted); font-size: 11px; letter-spacing: .12em; }
 .taxonomy-graph-caption span { letter-spacing: 0; }
 .taxonomy-canvas { display: block; width: 100%; height: 380px; touch-action: none; cursor: grab; }
 .taxonomy-canvas:active { cursor: grabbing; }
-.taxonomy-edge { stroke: #55605b; stroke-width: 1.5; }
-.taxonomy-node { cursor: pointer; outline: none; --node: #aab6c2; }
-.taxonomy-node.red { --node: #ef8587; } .taxonomy-node.yellow { --node: #edc667; } .taxonomy-node.green { --node: #76cba2; }
-.node-disc { fill: var(--node); stroke: var(--node); stroke-width: 2; }
+.taxonomy-edge { stroke: #bcbcbc; stroke-width: 1.5; }
+.taxonomy-node { cursor: pointer; outline: none; --node: var(--neutral); }
+.taxonomy-node.red { --node: var(--red); } .taxonomy-node.yellow { --node: var(--yellow); } .taxonomy-node.green { --node: var(--green); }
+.node-disc { fill: color-mix(in srgb, var(--node) 10%, white); stroke: var(--node); stroke-width: 2; }
 .node-halo { fill: none; stroke: var(--node); opacity: 0; stroke-width: 1; }
 .expanded .node-halo { opacity: .45; }
 .taxonomy-node:hover .node-halo, .taxonomy-node:focus .node-halo { opacity: 1; stroke-width: 3; }
-.node-count { fill: #202427; font-size: 18px; font-weight: 700; pointer-events: none; }
-.node-name { fill: #eef2f0; font-size: 16px; paint-order: stroke; stroke: #202427; stroke-width: 4px; stroke-linejoin: round; }
-.node-indicator { fill: #f7faf8; font-size: 17px; font-weight: bold; paint-order: stroke; stroke: #202427; stroke-width: 4px; }
-.taxonomy-graph-tools { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 14px 14px; color: #aab7b0; font-size: 11px; }
+.node-count { fill: var(--node); font-size: 18px; font-weight: 700; pointer-events: none; }
+.node-name { fill: var(--text); font-size: 16px; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; }
+.node-indicator { fill: var(--text); font-size: 17px; font-weight: bold; paint-order: stroke; stroke: #fff; stroke-width: 4px; }
+.taxonomy-graph-tools { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 14px 14px; color: var(--text-muted); font-size: 11px; }
 .taxonomy-graph-tools > div { display: flex; gap: 5px; }
-.taxonomy-graph-tools button { background: #303936; color: #eff4f1; border-color: #52635b; padding: 6px 10px; }
+.taxonomy-graph-tools button { padding: 6px 10px; }
 .graph-own-skills { margin-top: .6rem; }
-@media (max-width: 700px) { .taxonomy-canvas { height: 320px; } .taxonomy-graph-tools > span { max-width: 135px; } }
+@media (max-width: 700px) {
+  .taxonomy-canvas { height: 320px; }
+  .taxonomy-graph-tools { flex-wrap: wrap; }
+  .taxonomy-graph-tools > span { flex-basis: 100%; }
+  .taxonomy-graph-tools > div { margin-left: auto; }
+}
 </style>

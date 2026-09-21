@@ -16,6 +16,22 @@ Abschließend geprüft: 33 Backendtests (216 Assertions), 20 Frontendtests, 23 E
 
 Nach der Bedienergänzung erneut geprüft: 23 bestehende und drei neue Edge-Browsertests erfolgreich, außerdem Backend-/Frontendtests, Build und Datenbankabgleich. Die früher gemeinsam genutzten Beispielszenarien wurden in neun getrennte Szenarien aufgeteilt; Neuaufbau und einmalige Migration sind in [Featureideen](docs/Featureideen.md) beschrieben. Der vom Nutzer ergänzte Schemaexport bleibt unverändert.
 
+## Markenanpassung vom 21.09.2026
+
+Rein kosmetische Anpassung: weißes Logo aus `src/res/Zukunft-Logo.png`, Navigation mit Verlauf von Cyanblau `#009ee3` zu Magenta `#c40079`, sonst weiße/hellgraue Flächen, neutrale Schriftfarben und sparsame Cyan-Akzente. Der Taxonomiegraph hat einen weißen Hintergrund. Die fachlichen Statusfarben Rot/Gelb/Grün/Grau und ihre Zuordnung bleiben erhalten; Magenta wird ausschließlich im Navigationsverlauf eingesetzt.
+
+Roboto liegt samt SIL-OFL-Lizenz in `frontend/src/assets/fonts/` und wird per `@font-face` eingebunden. Vite übernimmt Schrift und Logo beim Build nach `public/assets/`; der Browser lädt sie direkt von XAMPP. Keine externe Font-Anfrage oder Installation auf den Endgeräten erforderlich. Auch die Canvas-Beschriftungen im Entwicklungs-DAG verwenden Roboto. Quelle und Lizenz sind im Schriftordner dokumentiert. Für einen vollständigen Git-Stand gehören das verwendete Logo und der Schriftordner zu den Quellen.
+
+Der Footer enthält zusätzlich den Copyright-Hinweis „Copyright 2011 The Roboto Project Authors“ und einen lokalen Link zur vollständigen SIL Open Font License 1.1. Vite liefert die unveränderte `OFL.txt` zusammen mit der Schrift in `public/assets/` aus. Die eingebundene Roboto-Version verwendet diese Lizenz, nicht Apache 2.0.
+
+Betroffene Darstellung: F-01/F-02, F-06/F-10/F-11, A-03 bis A-07 und S-06 bis S-08. Anforderungen, API, Fachberechnung und Stammdaten wurden nicht geändert. Geprüfte Abnahmebeispiele: Dashboard 3/7/16, Taxonomie-Aufklappen/Masken, Kandidaten und allgemeiner/persönlicher DAG sowie Matrix und Simulation.
+
+Prüfung unter XAMPP/Edge: `npm test` (20 erfolgreich), `npm run build` (TypeScript/Vite erfolgreich), `npm run test:e2e` (24 von 26 erfolgreich). Zwei bestehende Szenariotests scheitern an den aktuellen lokalen Daten: zehn statt neun Szenarien sowie doppelte Bezeichnung „Kernaufgaben“ in Einheit 1. Die API-Abweichung wurde lesend bestätigt; Daten und Tests wurden dafür nicht angepasst. Build/Testprozesse benötigten wegen `spawn EPERM` die Ausführung außerhalb der Sandbox.
+
+Zusätzlich wurden Desktop-/Mobilansichten, Matrix, Taxonomie und Entwicklungs-DAG visuell geprüft. Eine Browserkontrolle bestätigt tatsächlich verwendetes Roboto, genau einen lokalen Font-Download mit HTTP 200, keine externen Anfragen und keinen horizontalen Seitenüberlauf bei 320/390/768/1440 Pixeln. Backendtests wurden für diese Darstellungsänderung nicht erneut ausgeführt; andere Browser und Echtdaten bleiben ungeprüft. Aufruf: `http://localhost/skilltree/public/`, gegebenenfalls mit Strg+F5 neu laden.
+
+Nach der Skizze `src/res/Beispiel_Navigationsleiste.png` wurde die Navigation weiter vereinfacht: Organisationsname und Auswahlpfeil erscheinen als weißer Text ohne Kasten; „Start“ steht ebenfalls ohne Kasten oder Zusatzsymbol in der Leiste. Das native Auswahlmenü öffnet per Klick und schließt bei Außenklick oder Escape, wobei die gewählte Organisation erhalten bleibt. Darstellung zu G-04/G-05 und Navigation gemäß G-15/S-08; keine geänderte Fachregel. Erneut erfolgreich geprüft: `npm run build` sowie drei bestehende Edge-Browsertests (`npm run test:e2e -- e2e/dashboard.spec.ts e2e/extensions.spec.ts -g "dashboard|empty Soll|failed organisation"`). Zusätzliche Browserprüfung bestätigt Außenklick/Escape ohne Auswahlverlust und Desktop-/Mobilansichten ohne Seitenüberlauf bei 1440/390/320 Pixeln. Weitere Browser wurden für diesen Schritt nicht geprüft.
+
 ## Einstieg
 
 Die Anwendung vergleicht Aufgabenbedarf und Skillbestand einer vorbereiteten Organisationseinheit, zeigt eine Managementampel und ermittelt Entwicklungskandidaten. Die Taxonomie bietet seit dem freigegebenen Versuch vom 20.09.2026 einen aufklappbaren Gruppengraphen und das bisherige Inhaltsverzeichnis mit gemeinsamen Skill-Listen. Ein separater Entwicklungs-DAG bleibt Bestandteil des MVA. Die fachlichen Einzelregeln stehen im Katalog und in den Use-Cases.

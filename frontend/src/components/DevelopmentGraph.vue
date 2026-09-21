@@ -16,13 +16,13 @@ function render() {
   graph = cytoscape({
     container: canvas.value,
     elements: [
-      ...path.value.nodes.map(node => ({ data: { id: String(node.id), label: node.name, color: node.owned === null ? '#edf2f5' : node.owned ? '#e1f1e8' : '#f9e4e5', border: node.owned === null ? '#647b88' : node.owned ? '#26704a' : '#b43138' }, position: { x: node.x, y: node.y }, classes: node.target ? 'target' : '' })),
+      ...path.value.nodes.map(node => ({ data: { id: String(node.id), label: node.name, color: node.owned === null ? '#f7f7f7' : node.owned ? '#e1f1e8' : '#f9e4e5', border: node.owned === null ? '#777777' : node.owned ? '#26704a' : '#b43138' }, position: { x: node.x, y: node.y }, classes: node.target ? 'target' : '' })),
       ...path.value.edges.map(edge => ({ data: { id: `${edge.source}-${edge.target}`, source: String(edge.source), target: String(edge.target) } })),
     ],
     style: [
-      { selector: 'node', style: { label: 'data(label)', 'background-color': 'data(color)', 'border-color': 'data(border)', 'border-width': 2, shape: 'round-rectangle', width: 180, height: 54, color: '#243640', 'font-size': 13, 'text-wrap': 'wrap', 'text-max-width': '160px', 'text-valign': 'center', 'text-halign': 'center' } },
+      { selector: 'node', style: { label: 'data(label)', 'background-color': 'data(color)', 'border-color': 'data(border)', 'border-width': 2, shape: 'round-rectangle', width: 180, height: 54, color: '#262626', 'font-family': 'Roboto, Arial, sans-serif', 'font-size': 13, 'text-wrap': 'wrap', 'text-max-width': '160px', 'text-valign': 'center', 'text-halign': 'center' } },
       { selector: 'node.target', style: { 'border-width': 4, 'font-weight': 'bold' } },
-      { selector: 'edge', style: { width: 2, 'line-color': '#8b9b94', 'target-arrow-color': '#8b9b94', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier' } },
+      { selector: 'edge', style: { width: 2, 'line-color': '#999999', 'target-arrow-color': '#999999', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier' } },
     ],
     layout: { name: 'preset', fit: true, padding: 35 },
     minZoom: .1, maxZoom: 3, autoungrabify: true, boxSelectionEnabled: false,
@@ -38,7 +38,10 @@ function keyboard(event: KeyboardEvent) {
   if (moves[event.key]) { event.preventDefault(); graph.panBy(moves[event.key]!) }
   if (event.key === '+' || event.key === '-') { event.preventDefault(); zoom(event.key === '+' ? 1.2 : 1 / 1.2) }
 }
-onMounted(() => {
+onMounted(async () => {
+  // Canvas labels need the local font before Cytoscape measures their text.
+  await document.fonts.load('13px Roboto').catch(() => [])
+  if (!canvas.value) return
   render()
   resize = new ResizeObserver(() => graph?.resize())
   if (canvas.value) resize.observe(canvas.value)
