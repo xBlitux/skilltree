@@ -92,6 +92,19 @@ td:first-child { min-width: 150px; }
 .graph-zoom { position: absolute; right: .5rem; bottom: .5rem; display: flex; gap: .3rem; }
 .graph-description { margin-top: .8rem; font-size: .8rem; }
 .graph-description summary { cursor: pointer; }
+.scenario-buttons { grid-column: 1 / -1; display: flex; gap: .5rem; }
+.scenario-buttons button:hover { background: #26704a; color: white; }
+.matrix-filter { position: relative; font-size: .8rem; }
+.matrix-filter summary { cursor: pointer; padding: .65rem; }
+.matrix-filter > div { position: absolute; z-index: 20; min-width: 220px; max-height: 280px; overflow: auto; background: white; border: 1px solid #bdcdc3; padding: .8rem; box-shadow: 0 4px 12px #0002; }
+.matrix-filter label { display: flex; align-items: center; gap: .5rem; margin-top: .6rem; }
+.distance-limit { display: flex; justify-content: flex-end; align-items: center; gap: .6rem; margin: -.5rem 0 1rem; font-size: .85rem; }
+.distance-limit select { padding: .4rem; }
+.path-warning { max-width: min(460px, 90vw); padding: 1.5rem; border: 1px solid #9caf9f; border-radius: 8px; }
+.path-warning::backdrop { background: #162c3b80; }
+.status-link { display: inline-flex; border: 0; padding: .4rem; background: transparent; }
+.status-link:hover, .map-status:hover { background: #e1eee6; }
+.status-dot:hover { outline: 2px solid #9caea2; outline-offset: 3px; }
 .taxonomy-switch { display: flex; gap: .25rem; margin-bottom: .7rem; }
 .taxonomy-switch button { min-width: 80px; padding: .4rem .8rem; }
 .taxonomy-switch button[aria-pressed="true"] { color: white; background: #315b48; border-color: #315b48; }

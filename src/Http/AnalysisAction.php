@@ -26,12 +26,15 @@ final class AnalysisAction
         $status = 200;
         try {
             $query = $request->getQueryParams();
-            if (array_diff(array_keys($query), ['excluded_tasks', 'excluded_employees']) !== []) {
+            if (array_diff(array_keys($query), ['excluded_tasks', 'excluded_employees', 'organisation', 'maximum_distance']) !== []) {
                 throw new InvalidArgumentException('Unbekannter Analyseparameter.');
             }
             $tasks = $this->parseIds($query['excluded_tasks'] ?? '');
             $employees = $this->parseIds($query['excluded_employees'] ?? '');
-            $payload = (new SimulationAnalysis())->calculate(($this->loadDataset)(), $tasks, $employees);
+            $organisation = $this->parseIds($query['organisation'] ?? '');
+            $distance = $this->parseIds($query['maximum_distance'] ?? '3');
+            if (count($organisation) > 1 || count($distance) !== 1 || $distance[0] > 5) throw new InvalidArgumentException('Ungültige Organisation oder Distanzgrenze.');
+            $payload = (new SimulationAnalysis())->calculate(($this->loadDataset)($organisation[0] ?? null), $tasks, $employees, $distance[0]);
         } catch (InvalidArgumentException $exception) {
             $status = 400;
             $payload = ['error' => ['code' => 'invalid_filters', 'message' => $exception->getMessage()]];

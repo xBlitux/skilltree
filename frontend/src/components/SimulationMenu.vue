@@ -26,6 +26,7 @@ onBeforeUnmount(() => { dialog.value?.close(); origin?.focus({ preventScroll: tr
     <p v-if="busy" role="status">Simulation wird berechnet …</p>
     <p v-if="error" class="notice" role="alert">{{ error }} Der letzte erfolgreich berechnete Stand bleibt erhalten. <button @click="emit('retry')">Erneut versuchen</button></p>
     <fieldset :disabled="busy" class="simulation-fields">
+      <div class="scenario-buttons"><button v-for="(scenario, index) in simulation.scenarios ?? []" :key="scenario.id" :title="`Szenario ${index + 1} aktivieren`" :aria-label="`Szenario ${index + 1} aktivieren`" @click="emit('change', { ...simulation, excluded_task_ids: simulation.tasks.filter(task => !scenario.task_ids.includes(task.id)).map(task => task.id) })">{{ index + 1 }}</button></div>
       <div><h3>Aufgaben</h3>
         <div class="simulation-actions"><button @click="emit('change', { ...simulation, excluded_task_ids: [] })">Alle Aufgaben einschließen</button><button @click="emit('change', { ...simulation, excluded_task_ids: simulation.tasks.map(task => task.id) })">Alle Aufgaben ausschließen</button></div>
         <p v-if="!simulation.tasks.length">Leere Liste</p>

@@ -11,13 +11,13 @@ Das Artefakt dient der explorativen Entscheidungsunterstützung. Eine Fertigkeit
 
 ## Verbindlicher Umfang
 
-- Genau eine vorbereitete Organisationseinheit mit Echtdaten ist für Entwicklung und Evaluation hinterlegt und standardmäßig ausgewählt.
+- Für die Evaluation bleibt die vorbereitete Praxiseinheit vorgesehen. Seit der Nutzerrevision vom 21.09.2026 können weitere vorbereitete Organisationseinheiten vorhanden sein und ausgewählt werden; initial gilt die kleinste ID. Die lokale Testbasis enthält drei ausdrücklich synthetische Einheiten.
 - Soll und Ist werden aus den gespeicherten Zuordnungen einschließlich sämtlicher direkter und indirekter Voraussetzungen hergeleitet. Die impliziten Zuordnungen werden nicht zusätzlich dauerhaft gespeichert.
 - Die Taxonomie wird als **hierarchisches, aufklappbares Inhaltsverzeichnis** und seit der ausdrücklichen Versuchsfreigabe vom 20.09.2026 zusätzlich als **umschaltbarer Gruppengraph** umgesetzt (F-02). Der Graph startet nur mit der obersten Gruppenebene; Kreise zeigen Ampelfarbe und eindeutige Skillzahl, Namen stehen darunter. Gruppen ohne Untergruppen öffnen weiterhin ihre Skill-Liste. Masken, Farbvererbung und Zurück-Navigation bleiben erhalten.
 - Ein **separater Entwicklungs-DAG** zeigt allgemeine oder personenbezogene Entwicklungspfade. Bei Personenbezug sind verbleibende und vollständige Darstellung umschaltbar.
 - Dashboard, Kategorieübersichten, Kandidaten und Simulation beruhen auf demselben aktuellen Berechnungszustand. Die Auswahl einer Person verändert nicht die organisationsbezogene Managementampel.
 - Die Webanwendung wertet vorbereitete Daten aus. Es gibt keine Stammdatenpflege, keine Bearbeitung der Taxonomie, keine laufende LLM-Schätzung und keine dauerhafte Speicherung von Simulation oder Berechnungsergebnissen.
-- Die Organisationsauswahl ist gegebenenfalls ein funktionsloser UI-Dummy. Ein Rollen- oder Berechtigungssystem und die Verwaltung weiterer Organisationseinheiten sind nicht Bestandteil des festgelegten Umfangs.
+- Die Organisationsauswahl wechselt zwischen vorbereiteten Einheiten und setzt den Bedienzustand zurück. Eine Verwaltungsoberfläche sowie Rollen-/Berechtigungssystem bleiben außerhalb des Umfangs. Ergänzende Bedienideen sind in `Featureideen.md` dokumentiert.
 
 ## Datengrundlage
 

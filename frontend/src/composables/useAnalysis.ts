@@ -15,7 +15,7 @@ export function useAnalysis() {
     const request = ++sequence
     controller?.abort()
     controller = new AbortController()
-    requested.value = { excluded_task_ids: [...filters.excluded_task_ids], excluded_employee_ids: [...filters.excluded_employee_ids] }
+    requested.value = { ...filters, excluded_task_ids: [...filters.excluded_task_ids], excluded_employee_ids: [...filters.excluded_employee_ids] }
     busy.value = true; error.value = ''
     try {
       const result = await loadAnalysis(requested.value, controller.signal)

@@ -9,7 +9,7 @@ use InvalidArgumentException;
 /** Temporary filters only: prepared data, taxonomy and path availability stay intact. */
 final class SimulationAnalysis
 {
-    public function calculate(AnalysisDataset $data, array $excludedTasks = [], array $excludedEmployees = []): array
+    public function calculate(AnalysisDataset $data, array $excludedTasks = [], array $excludedEmployees = [], int $maximumDistance = 3): array
     {
         $tasks = $this->validateIds($excludedTasks, array_column($data->tasks, 'id'));
         $employees = $this->validateIds($excludedEmployees, array_column($data->employees, 'id'));
@@ -20,8 +20,10 @@ final class SimulationAnalysis
             $data->prerequisites, $data->groups,
         );
         $result = (new SkillAnalysis())->calculate($filtered);
-        $result['development'] = (new DevelopmentAnalysis())->calculate($data, $result);
+        $result['development'] = (new DevelopmentAnalysis())->calculate($data, $result, $maximumDistance);
+        $result['organisations'] = $data->organisations ?: [$data->organisation];
         $result['simulation'] = [
+            'scenarios' => $data->scenarios,
             'excluded_task_ids' => $tasks, 'excluded_employee_ids' => $employees,
             // Include excluded choices so users can re-include them without another endpoint.
             'tasks' => array_map(static fn (array $task): array => ['id' => $task['id'], 'name' => $task['name']], $data->tasks),

@@ -16,10 +16,11 @@ final class DevelopmentAnalysisTest extends TestCase
         $data = $this->dataset([[], [1], [2, 3], [4]], [4 => [2, 3], 2 => [1], 3 => [1]]);
         $result = $this->calculate($data);
         $target = $this->candidates($result, 4);
-        self::assertSame([3, 2, 1], array_column($target['slots'], 'employee_id'));
-        self::assertSame([1, 3, 4], array_column($target['slots'], 'distance'));
+        self::assertSame([3, 2], array_column($target['slots'], 'employee_id'));
+        self::assertSame([1, 3], array_column($target['slots'], 'distance'));
+        self::assertNull($target['slots'][2]);
         self::assertSame(1, $target['minimum_distance']);
-        self::assertSame(['distance_threshold' => false, 'unfilled_slots' => false], $target['recommendations']);
+        self::assertSame(['distance_threshold' => false, 'unfilled_slots' => true], $target['recommendations']);
     }
 
     public function testThreePlacesAndIndependentRecommendations(): void
@@ -28,10 +29,10 @@ final class DevelopmentAnalysisTest extends TestCase
             $result = $this->calculate($this->dataset(array_fill(0, $count, []), [4 => [1, 2, 3]]));
             $target = $this->candidates($result, 4);
             self::assertCount(3, $target['slots']);
-            self::assertSame($count < 3, $target['recommendations']['unfilled_slots']);
+            self::assertTrue($target['recommendations']['unfilled_slots']);
             self::assertSame($count > 0, $target['recommendations']['distance_threshold']);
             self::assertSame($count === 0 ? null : 4, $target['minimum_distance']);
-            self::assertCount(max(0, 3 - $count), array_filter($target['slots'], static fn ($slot) => $slot === null));
+            self::assertCount(3, array_filter($target['slots'], static fn ($slot) => $slot === null));
         }
         $nearby = $this->candidates($this->calculate($this->dataset([[1, 2, 3], [1, 2]], [4 => [1, 2, 3]])), 4);
         self::assertSame(['distance_threshold' => false, 'unfilled_slots' => true], $nearby['recommendations']);
@@ -65,6 +66,24 @@ final class DevelopmentAnalysisTest extends TestCase
         $result = (new DevelopmentAnalysis())->calculate($data, $analysis);
         self::assertSame(4, $this->candidates($result, 4)['slots'][0]['employee_id']);
         self::assertNull($this->candidates($result, 4)['slots'][1]);
+    }
+
+    public function testConfigurableThresholdIncludesBoundaryAndWarnsOnlyAboveIt(): void
+    {
+        $data = $this->dataset([[], [1], [1,2], [1,2,3]], [4 => [1,2,3]]);
+        foreach (range(1,5) as $limit) {
+            $target = $this->candidates((new DevelopmentAnalysis())->calculate($data, (new SkillAnalysis())->calculate($data), $limit), 4);
+            foreach (array_filter($target['slots']) as $slot) self::assertLessThanOrEqual($limit, $slot['distance']);
+            self::assertSame(min(3, $limit), count(array_filter($target['slots'])));
+            self::assertFalse($target['recommendations']['distance_threshold']);
+        }
+        $data = $this->dataset([[], [], []], [4 => [1,2]]);
+        $at = $this->candidates((new DevelopmentAnalysis())->calculate($data, (new SkillAnalysis())->calculate($data), 3), 4);
+        self::assertFalse($at['recommendations']['distance_threshold']);
+        self::assertCount(3, array_filter($at['slots']));
+        $over = $this->candidates((new DevelopmentAnalysis())->calculate($data, (new SkillAnalysis())->calculate($data), 2), 4);
+        self::assertSame([null,null,null], $over['slots']);
+        self::assertTrue($over['recommendations']['distance_threshold']);
     }
 
     private function calculate(AnalysisDataset $data): array

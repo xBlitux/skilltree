@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 const row = (page: Page, id: number) => page.locator(`[data-map-skill="${id}"]`)
-async function map(page: Page) { await page.getByRole('button', { name: 'Karte', exact: true }).click() }
+async function map(page: Page) { await page.getByRole('button', { name: 'Matrix', exact: true }).click() }
 async function back(page: Page) { await page.getByRole('button', { name: /Zurück/ }).click() }
 async function simulate(page: Page, label: string) {
   await page.getByRole('button', { name: 'Simulation', exact: true }).click()
@@ -20,6 +20,10 @@ test('map matches API ownership including implicit skills; mask and personal con
   await page.getByRole('button', { name: /^Testtaxonomie:/ }).click()
   await map(page)
   await expect(page.getByRole('combobox', { name: 'Mitarbeitermaske' })).toHaveCount(0)
+  await expect(page.locator('.map-person')).toHaveCount(1)
+  await page.locator('.matrix-filter summary').click()
+  await page.getByRole('button', { name: 'Alle', exact: true }).click()
+  await page.locator('.matrix-filter summary').click()
   await expect(page.locator('[data-map-skill]')).toHaveCount(26)
   for (const skill of data.skills) {
     const current = row(page, skill.id)
@@ -34,7 +38,7 @@ test('map matches API ownership including implicit skills; mask and personal con
   await expect(row(page, 27).locator('.map-gap')).toHaveText('0')
   await expect(row(page, 27).locator('.map-status')).toHaveCount(0)
   await page.getByRole('button', { name: 'Baum', exact: true }).click()
-  await expect(page.getByRole('combobox', { name: 'Mitarbeitermaske' })).toHaveValue('1')
+  await expect(page.getByRole('combobox', { name: 'Mitarbeitermaske' }).locator('option:checked')).toHaveText('Keiner')
   await expect(page.getByRole('button', { name: /Testtaxonomie/ })).toHaveAttribute('aria-expanded', 'true')
   await page.getByRole('button', { name: 'Graph', exact: true }).click()
   await expect(page.locator('.taxonomy-node')).toHaveCount(4)
@@ -59,6 +63,9 @@ test('map links open general/personal paths, warnings and focused red/yellow/gre
   await expect(page.getByRole('combobox', { name: 'Person im Entwicklungspfad' })).toHaveValue('1')
   await expect(page.locator('.distance')).toContainText('0')
   await back(page)
+  await page.locator('.matrix-filter summary').click()
+  await page.getByRole('button', { name: 'Alle', exact: true }).click()
+  await page.locator('.matrix-filter summary').click()
   await row(page, 20).getByRole('button', { name: /Ben Berger: fehlt/ }).click()
   await expect(page.getByRole('combobox', { name: 'Person im Entwicklungspfad' })).toHaveValue('2')
   await expect(page.locator('.distance')).toContainText('2')
@@ -75,11 +82,11 @@ test('map links open general/personal paths, warnings and focused red/yellow/gre
   }
   await page.getByRole('button', { name: 'Organisationsmaske', exact: true }).click()
   await row(page, 27).getByRole('button', { name: 'Geodatenkartierung', exact: true }).click()
-  await expect(page.getByRole('alert')).toContainText('kein geschätzter Entwicklungspfad')
-  await page.getByRole('button', { name: 'Warnung schließen' }).click()
+  await expect(page.getByRole('alertdialog')).toContainText('kein geschätzter Entwicklungspfad')
+  await page.getByRole('button', { name: 'OK', exact: true }).click()
   await row(page, 27).getByRole('button', { name: /Anna Adler: fehlt/ }).click()
-  await expect(page.getByRole('alert')).toContainText('kein geschätzter Entwicklungspfad')
-  await page.getByRole('button', { name: 'Warnung schließen' }).click()
+  await expect(page.getByRole('alertdialog')).toContainText('kein geschätzter Entwicklungspfad')
+  await page.getByRole('button', { name: 'OK', exact: true }).click()
   await page.setViewportSize({ width: 390, height: 844 })
   await page.locator('.skill-map-scroll').evaluate(el => { el.scrollLeft = 300; el.scrollTop = 180 })
   await page.waitForTimeout(100)

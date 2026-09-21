@@ -3,7 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { skillMap } from '../domain/skillMap'
 import { labels, type Analysis, type Status } from '../domain/taxonomy'
 import StatusDot from './StatusDot.vue'
-const props = defineProps<{ data: Analysis; mask: boolean; scroll: { x: number; y: number } }>()
+const props = defineProps<{ data: Analysis; mask: boolean; people: number[]; scroll: { x: number; y: number } }>()
+const employees = computed(() => props.data.employees.filter(employee => !props.people.length || props.people.includes(employee.id)))
 const emit = defineEmits<{ path: [id: number, person: number | null]; category: [status: Status, id: number]; scroll: [position: { x: number; y: number }] }>()
 const groups = computed(() => skillMap(props.data, props.mask))
 const viewport = ref<HTMLElement>()
@@ -14,15 +15,16 @@ defineExpose({ reset })
 </script>
 <template>
   <p class="view-hint">✓ vorhanden · × fehlt · Benötigt: zwei Wissensträger je Soll-Skill, sonst null. Skillname: allgemeiner Pfad; Zuordnung: persönlicher Pfad.</p>
-  <div ref="viewport" class="skill-map-scroll" tabindex="0" role="region" aria-label="Skillkarte" @scroll="remember">
+  <div ref="viewport" class="skill-map-scroll" tabindex="0" role="region" aria-label="Skillmatrix" @scroll="remember">
     <table v-if="groups.length" class="skill-map">
       <caption class="sr-only">Skills nach Gruppe mit Wissensträgern und Besetzungslücke</caption>
-      <thead><tr><th scope="col" class="map-group">Gruppe</th><th scope="col" class="map-skill">Skill</th><th v-for="employee in data.employees" :key="employee.id" scope="col" class="map-person"><span>{{ employee.first_name }} {{ employee.last_name }}</span></th><th scope="col">Vorhanden</th><th scope="col">Benötigt</th><th scope="col">Lücke</th></tr></thead>
+      <thead><tr><th scope="col" class="map-group">Gruppe</th><th scope="col" class="map-skill">Skill</th><th scope="col" title="Gesamtlänge des allgemeinen Entwicklungspfad">Pfad</th><th v-for="employee in employees" :key="employee.id" scope="col" class="map-person"><span>{{ employee.first_name }} {{ employee.last_name }}</span></th><th scope="col">Vorhanden</th><th scope="col">Benötigt</th><th scope="col">Lücke</th></tr></thead>
       <tbody v-for="group in groups" :key="group.id">
         <tr v-for="(row, index) in group.rows" :key="row.skill.id" :data-map-skill="row.skill.id">
           <th v-if="index === 0" scope="rowgroup" :rowspan="group.rows.length" class="map-group"><span class="map-group-name">{{ group.name }}</span></th>
-          <th scope="row" class="map-skill"><div class="map-skill-label"><button v-if="row.color !== 'neutral'" class="map-status" :aria-label="`${row.skill.name}: ${labels[row.color]} öffnen`" @click="emit('category', row.color, row.skill.id)"><StatusDot :color="row.color" /></button><StatusDot v-else color="neutral" /><button class="text-link" @click="emit('path', row.skill.id, null)">{{ row.skill.name }}</button></div></th>
-          <td v-for="cell in row.possession" :key="cell.employee.id" class="map-cell"><button class="possession" :class="{ owned: cell.owned }" :aria-label="`${row.skill.name} · ${cell.employee.first_name} ${cell.employee.last_name}: ${cell.owned ? 'vorhanden' : 'fehlt'} – persönlichen Pfad öffnen`" @click="emit('path', row.skill.id, cell.employee.id)">{{ cell.owned ? '✓' : '×' }}</button></td>
+          <th scope="row" class="map-skill"><div class="map-skill-label"><button v-if="row.color !== 'neutral'" class="map-status" :title="labels[row.color]" :aria-label="`${row.skill.name}: ${labels[row.color]} öffnen`" @click="emit('category', row.color, row.skill.id)"><StatusDot :color="row.color" /></button><StatusDot v-else color="neutral" /><button class="text-link" @click="emit('path', row.skill.id, null)">{{ row.skill.name }}</button></div></th>
+          <td class="map-path">{{ row.pathLength ?? '–' }}</td>
+          <td v-for="cell in row.possession.filter(cell => !people.length || people.includes(cell.employee.id))" :key="cell.employee.id" class="map-cell"><button class="possession" :class="{ owned: cell.owned }" :title="cell.owned ? 'Vorhanden' : 'Nicht vorhanden'" :aria-label="`${row.skill.name} · ${cell.employee.first_name} ${cell.employee.last_name}: ${cell.owned ? 'vorhanden' : 'fehlt'} – persönlichen Pfad öffnen`" @click="emit('path', row.skill.id, cell.employee.id)">{{ cell.owned ? '✓' : '×' }}</button></td>
           <td class="map-available">{{ row.available }}</td><td class="map-needed">{{ row.needed }}</td><td class="map-gap" :class="{ shortage: row.gap > 0 }">{{ row.gap }}</td>
         </tr>
       </tbody>

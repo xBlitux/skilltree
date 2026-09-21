@@ -25,6 +25,16 @@ try {
         throw new RuntimeException('Test abgebrochen: verbundenes Datenbankziel stimmt nicht.');
     }
     $data = (new AnalysisRepository($connection))->load();
+    if (array_column($data->organisations, 'id') !== [1,2,3] || $data->scenarios[0]['task_ids'] !== [9,10]) throw new RuntimeException('Organisationen/Szenarien fehlen.');
+    foreach ([2 => ['counts' => ['red'=>1,'yellow'=>3,'green'=>4], 'people'=>[6,7,8], 'tasks'=>[11,12,13]],
+              3 => ['counts' => ['red'=>0,'yellow'=>5,'green'=>1], 'people'=>[9,10,11], 'tasks'=>[14,15,16]]] as $id => $expected) {
+        $unit = (new AnalysisRepository($connection))->load($id);
+        $unitResult = (new SimulationAnalysis())->calculate($unit);
+        if ($unitResult['summary']['counts'] !== $expected['counts'] || array_column($unit->employees, 'id') !== $expected['people']
+            || array_column($unit->tasks, 'id') !== $expected['tasks']) throw new RuntimeException('Falscher Organisationsausschnitt.');
+        foreach ($unit->scenarios as $scenario) if (array_diff($scenario['task_ids'], $expected['tasks'])) throw new RuntimeException('Fremde Szenarioaufgaben.');
+    }
+    echo "OK: drei getrennte Organisationseinheiten, Szenario 1 der Originaleinheit nur Aufgaben 9/10; neue Einheiten 1/3/4 und 0/5/1.\n";
     $result = (new SkillAnalysis())->calculate($data);
     $check = static function (bool $condition, string $message): void {
         if (!$condition) {

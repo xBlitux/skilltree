@@ -3,6 +3,9 @@
 **Stand:** 18.09.2026 – eingefrorener fachlicher Ausgangsstand.  
 **Geltung:** Ergänzung zum [Anforderungskatalog_16092026.xlsx](Anforderungskatalog_16092026.xlsx). Anforderungen und Prioritäten stehen im Katalog; dieses Dokument konkretisiert Bedienabläufe und Abnahmebeispiele. Es ist kein Auftrag für eine weitere Konzeptionsrunde.
 
+
+**Freigegebene Revision vom 21.09.2026:** Die nachfolgenden historischen Abnahmebeispiele gelten mit den Änderungen in [Featureideen](Featureideen.md): Organisationsauswahl statt Dummy; leere Gruppen ausblenden; Matrix mit Mehrfach-Spaltenfilter; Statuslinks in organisationsbezogenen Skill-Listen; Warnpopup statt Warnzeile; Kandidatengrenze standardmäßig 3, einstellbar 1–5, nur Distanzen bis einschließlich Grenze. Die frühere Warnbedingung „mindestens 3“ gilt nicht mehr. Bei Budgetplanung ist Distanz 3 zulässig und löst bei Standardgrenze keine Distanzwarnung aus. Betroffene bestehende IDs: G-04/G-05, F-03/F-11, A-07/A-12, S-01. Excel und Lesefassung wurden synchron geändert; keine neuen IDs/Prioritäten. Neue Bedienabläufe und API-Felder stehen im verlinkten Dokument.
+
 ## 1. Verbindliche Leitlinien
 
 - Das MVA wertet vorbereitete Daten aus; keine Datenpflegeoberfläche, neue LLM-Schätzung oder persistente Simulation (D-06/D-10, A-13/A-15).
@@ -25,7 +28,7 @@ Die Voraussetzungen in Bedingung 1 werden vollständig und über beliebig viele 
 
 Damit gelten **auch implizite Soll-Skills ohne eigene Voraussetzungen als geschätzte Grundlagenskills**. Ihr allgemeiner DAG besteht aus dem Zielknoten. Sie erhalten bei roter oder gelber Soll-Bewertung regulär Entwicklungskandidaten und Distanzen. Die zuvor beschriebene Ausnahme für ausschließlich als Voraussetzung vorkommende Grundlagenskills ist aufgehoben.
 
-Trifft keine Bedingung zu, öffnet ein Pfadaufruf keinen DAG, sondern eine kurze schließbare Warnbox, beispielsweise „Für diesen Skill liegt kein geschätzter Entwicklungspfad vor.“ Die vorherige Ansicht bleibt zugänglich. Fehlende Daten außerhalb des geschätzten Bestands werden nicht als bekannte Voraussetzungslosigkeit interpretiert.
+Trifft keine Bedingung zu, öffnet ein Pfadaufruf keinen DAG, sondern ein bestätigungspflichtiges Popup mit „Für diesen Skill liegt kein geschätzter Entwicklungspfad vor.“ Nach Bestätigung bleiben die vorherige Ansicht und Scrollposition erhalten. Fehlende Daten außerhalb des geschätzten Bestands werden nicht als bekannte Voraussetzungslosigkeit interpretiert.
 
 **Abnahmebeispiel:** Eine Aufgabe benötigt Z; Z benötigt B; B benötigt A; A hat keine Voraussetzungen. Z, B und A gelten sämtlich als geschätzt. A kann als einzelner Zielknoten geöffnet werden. Nach Ausschluss der Aufgabe bleiben alle drei Skills geschätzt, auch wenn sie dadurch nicht mehr zum aktuellen Soll gehören. Ein anderer katalogisierter Skill Q ohne Aufgabenbezug, ohne Zugehörigkeit zu dieser Voraussetzungshülle und ohne eigene gespeicherte Voraussetzungen erhält beim Pfadaufruf die Warnbox.
 
@@ -64,8 +67,9 @@ A-11/A-12 sehen drei Plätze vor; unbesetzte Plätze sind keine Personen und bek
 | Zulässige Kandidaten und Distanzen | Erwartetes Ergebnis |
 |---|---|
 | Zwei Personen: 1, 2 | Ein unbesetzter Platz löst eine Handlungsempfehlung aus; Distanzschwelle greift nicht |
-| Drei Personen: 1, 2, 4 | Kein unbesetzter Platz; kleinste Distanz unter 3; keiner der beiden Auslöser greift |
-| Drei Personen: 3, 4, 5 | Hinweis auf Prüfung zusätzlichen Personaleinsatzes oder externer Fertigkeitsgewinnung |
+| Drei Personen: 1, 2, 4; Grenze 3 | Distanz 4 ausgeschlossen; ein unbesetzter Platz, nur Hinweis auf fehlende geeignete interne Personen |
+| Drei Personen: 3, 3, 3; Grenze 3 | Alle drei zulässig, keine Warnung |
+| Drei Personen: 4, 4, 5; Grenze 3 | Alle ausgeschlossen; drei unbesetzte Plätze und zusätzlich Hinweis auf zusätzlichen Personaleinsatz oder externe Fertigkeitsgewinnung |
 | Keine Person | Unbesetzte Plätze lösen die Empfehlung aus; keine kleinste Distanz berechnen |
 
 ## 4. Oberfläche und Zustände

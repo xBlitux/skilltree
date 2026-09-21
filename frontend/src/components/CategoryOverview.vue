@@ -33,8 +33,8 @@ const names = (ids: number[]) => props.data.employees.filter(employee => ids.inc
             <template v-else><td>Unbesetzt – keine weitere interne Person</td><td></td><td></td></template>
           </tr></tbody>
         </table>
-        <p v-if="candidates.get(skill.id)?.recommendations.distance_threshold" class="notice">Die kleinste Fertigkeitsdistanz beträgt mindestens 3. Zusätzlichen Personaleinsatz oder externe Fertigkeitsgewinnung prüfen.</p>
-        <p v-if="candidates.get(skill.id)?.recommendations.unfilled_slots" class="notice">Nicht alle Kandidatenplätze sind besetzt. Weitere Maßnahmen prüfen, da zusätzliche interne Personen fehlen.</p>
+        <p v-if="candidates.get(skill.id)?.recommendations.distance_threshold" class="notice">Die kleinste Fertigkeitsdistanz beträgt mehr als {{ data.development.maximum_distance ?? 3 }}. Zusätzlichen Personaleinsatz oder externe Fertigkeitsgewinnung prüfen.</p>
+        <p v-if="candidates.get(skill.id)?.recommendations.unfilled_slots" class="notice">Nicht alle Kandidatenplätze sind besetzt. Weitere Maßnahmen prüfen, da geeignete interne Personen fehlen.</p>
       </div>
     </article>
   </div>

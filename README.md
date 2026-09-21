@@ -6,6 +6,14 @@ Webbasiertes Minimum Viable Artifact zur Unterstützung von Personalbedarfs-, Wi
 **Technischer Stand:** Schritte 1–7 sind implementiert: Kernberechnung, Dashboard, hierarchische Taxonomie, Kategorieübersichten, Entwicklungskandidaten, allgemeiner/personenbezogener Entwicklungs-DAG sowie temporäre Simulation mit Zurück/Reset/Start. A-07 wurde auf ausdrücklichen Nutzerwunsch am 19.09.2026 zur skillbezogenen grünen Tabelle geändert. Die Anforderungsprüfung vom 20.09.2026 einschließlich offener Echtdaten-/Evaluationspunkte steht in [docs/Abnahme_Schritt7.md](docs/Abnahme_Schritt7.md).
 **Zeitbudget:** etwa 6–7 Tage Umsetzung.
 
+## Erweiterungen vom 21.09.2026
+
+Organisation oben wählen; Wechsel setzt die Ansicht vollständig zurück. **Matrix** bietet Mitarbeiter-Mehrfachauswahl und Pfadlänge. Im Simulationsmenü aktivieren **1/2/3** vorbereitete Aufgabenszenarien. Rot/Gelb besitzen eine gemeinsame **maximale Distanz (1–5, Standard 3)**; weiter entfernte Kandidaten werden ausgeschlossen. Statuspunkte in Skill-Listen ohne Personenauswahl öffnen die Kategorie. Nicht geschätzte Pfade zeigen ein modales Popup mit unveränderter Scrollposition. Leere Taxonomiegruppen werden ausgeblendet.
+
+Die Testdatenbank enthält nun drei synthetische Organisationseinheiten. Additive Einrichtung und Beispielwerte: [Featureideen](docs/Featureideen.md). Es wurden nur bestehende Anforderungen geändert (G-04/G-05, F-03/F-11, A-07/A-12, S-01), keine neuen IDs oder Prioritäten. Die folgenden älteren Prüfberichte beschreiben den jeweiligen historischen Stand.
+
+Abschließend geprüft: 33 Backendtests (216 Assertions), 20 Frontendtests, 23 Edge-Browsertests unter XAMPP, lesender Datenbankabgleich aller drei Einheiten, TypeScript-/Vite-Build und Excel-/Markdown-Abgleich erfolgreich. Zum Ausprobieren `http://localhost/skilltree/public/` mit Strg+F5 neu laden. Echtdaten, große Matrixbestände und andere Browser bleiben ungeprüft.
+
 ## Einstieg
 
 Die Anwendung vergleicht Aufgabenbedarf und Skillbestand einer vorbereiteten Organisationseinheit, zeigt eine Managementampel und ermittelt Entwicklungskandidaten. Die Taxonomie bietet seit dem freigegebenen Versuch vom 20.09.2026 einen aufklappbaren Gruppengraphen und das bisherige Inhaltsverzeichnis mit gemeinsamen Skill-Listen. Ein separater Entwicklungs-DAG bleibt Bestandteil des MVA. Die fachlichen Einzelregeln stehen im Katalog und in den Use-Cases.
@@ -20,7 +28,7 @@ Tatsächlich geprüft am 20.09.2026: `npm test` (20 erfolgreich), `npm run build
 
 ## Ablage im Repository
 
-Zusätzliche Featureidee vom 21.09.2026: **Karte** ergänzt Baum und Graph um eine Skill-/Mitarbeitermatrix mit Status, Besitz sowie Vorhanden/Benötigt/Lücke. Organisationsmaske und Simulation bleiben wirksam; die Mitarbeitermaske wird nur in der Karte ausgeblendet. Skillname, Status und Besitzsymbol öffnen die jeweils passende Detailansicht. Umsetzung, Bedienregeln und Prüfungen: [Featureidee Skillkarte](docs/Featureidee_Skillkarte.md). Der offizielle Anforderungskatalog wurde dafür ausdrücklich nicht geändert. Nach `npm run build` in `frontend/` unter `http://localhost/skilltree/public/` neu laden und **Karte** wählen.
+Zusätzliche Featureidee vom 21.09.2026: **Matrix** ergänzt Baum und Graph um eine Skill-/Mitarbeitermatrix mit Status, Besitz sowie Vorhanden/Benötigt/Lücke. Organisationsmaske und Simulation bleiben wirksam; der Mitarbeiterfilter begrenzt nur die sichtbaren Spalten. Skillname, Status und Besitzsymbol öffnen die jeweils passende Detailansicht. Umsetzung, Bedienregeln und Prüfungen: [Featureidee Skillmatrix](docs/Featureideen.md). Die Matrix war zunächst eine reine Featureidee. Die später ausdrücklich freigegebenen Änderungen bestehender Anforderungen vom 21.09.2026 sind in Featureideen.md nachgewiesen. Nach `npm run build` in `frontend/` unter `http://localhost/skilltree/public/` neu laden und **Matrix** wählen.
 
 Die folgenden Pfade sind relativ zum Projektordner. `docs/` ist ein Unterordner des Repositorys, kein Verzeichnis direkt unter dem Betriebssystem-Laufwerk.
 

@@ -8,11 +8,8 @@ test('multiple roots, empty groups and skills assigned directly to an inner grou
   skill.skill_group_id = root.id
   await page.route('**/api/analysis', route => route.fulfill({ json: data }))
   await page.goto('./')
-  await expect(page.locator('.taxonomy-node')).toHaveCount(2)
-  await expect(page.getByRole('button', { name: /^Leere Testgruppe:/ }).locator('.node-count')).toHaveText('0')
-  await page.getByRole('button', { name: /^Leere Testgruppe:/ }).click()
-  await expect(page.getByText('Leere Liste', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: /Zurück/ }).click()
+  await expect(page.locator('.taxonomy-node')).toHaveCount(1)
+  await expect(page.getByRole('button', { name: /^Leere Testgruppe:/ })).toHaveCount(0)
   await page.getByRole('button', { name: /^Testtaxonomie:/ }).click()
   await page.getByRole('button', { name: /Direkt zugeordnete Skills \(1\)/ }).click()
   await expect(page.locator('.skill-list li')).toHaveCount(1)

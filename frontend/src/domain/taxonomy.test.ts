@@ -48,9 +48,10 @@ describe('F-01..F-11 taxonomy projection', () => {
     expect(taxonomyView(data, true, null).roots[0]?.count).toBe(4)
     expect(taxonomyView(data, true, null).roots[0]?.color).toBe('neutral')
   })
-  it('retains empty top-level groups and supports an empty catalog', () => {
+  it('hides empty top-level groups with and without mask and supports an empty catalog', () => {
     const data = fixture(); data.taxonomy.skills = []
-    expect(taxonomyView(data, true, null).roots[0]?.count).toBe(0)
+    expect(taxonomyView(data, true, null).roots).toEqual([])
+    expect(taxonomyView(data, false, null).roots).toEqual([])
     data.taxonomy.groups = []
     expect(taxonomyView(data, true, null).roots).toEqual([])
   })
