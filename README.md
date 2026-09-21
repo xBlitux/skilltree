@@ -20,6 +20,8 @@ Tatsächlich geprüft am 20.09.2026: `npm test` (20 erfolgreich), `npm run build
 
 ## Ablage im Repository
 
+Zusätzliche Featureidee vom 21.09.2026: **Karte** ergänzt Baum und Graph um eine Skill-/Mitarbeitermatrix mit Status, Besitz sowie Vorhanden/Benötigt/Lücke. Organisationsmaske und Simulation bleiben wirksam; die Mitarbeitermaske wird nur in der Karte ausgeblendet. Skillname, Status und Besitzsymbol öffnen die jeweils passende Detailansicht. Umsetzung, Bedienregeln und Prüfungen: [Featureidee Skillkarte](docs/Featureidee_Skillkarte.md). Der offizielle Anforderungskatalog wurde dafür ausdrücklich nicht geändert. Nach `npm run build` in `frontend/` unter `http://localhost/skilltree/public/` neu laden und **Karte** wählen.
+
 Die folgenden Pfade sind relativ zum Projektordner. `docs/` ist ein Unterordner des Repositorys, kein Verzeichnis direkt unter dem Betriebssystem-Laufwerk.
 
 | Pfad | Inhalt / Verwendung |

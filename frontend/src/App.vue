@@ -5,6 +5,7 @@ import { emptyFilters, toggleExclusion, type SimulationFilters } from './domain/
 import { labels, taxonomyView, type Status } from './domain/taxonomy'
 import TaxonomyBranch from './components/TaxonomyBranch.vue'
 import TaxonomyGraph from './components/TaxonomyGraph.vue'
+import SkillMap from './components/SkillMap.vue'
 import StatusDot from './components/StatusDot.vue'
 import MaskIcon from './components/MaskIcon.vue'
 import CategoryOverview from './components/CategoryOverview.vue'
@@ -12,8 +13,11 @@ import SimulationMenu from './components/SimulationMenu.vue'
 const DevelopmentGraph = defineAsyncComponent(() => import('./components/DevelopmentGraph.vue'))
 
 type View = { kind: 'taxonomy' } | { kind: 'group'; id: number } | { kind: 'category'; status: Status } | { kind: 'path'; id: number; full: boolean }
-type Snapshot = { view: View; expanded: Set<number>; details: Set<number>; scroll: number; mask: boolean; person: number | null; taxonomyMode: 'tree' | 'graph' }
-const taxonomyMode = ref<'tree' | 'graph'>('graph')
+type Snapshot = { view: View; expanded: Set<number>; details: Set<number>; scroll: number; mask: boolean; person: number | null; taxonomyMode: 'tree' | 'graph' | 'map'; mapScroll: { x: number; y: number } }
+const taxonomyMode = ref<'tree' | 'graph' | 'map'>('graph')
+const mapScroll = ref({ x: 0, y: 0 })
+const mapView = ref<{ reset: () => void }>()
+const isMap = computed(() => view.value.kind === 'taxonomy' && taxonomyMode.value === 'map')
 const taxonomyGraph = ref<{ reset: () => void }>()
 const { data, busy, error, requested, load: requestAnalysis } = useAnalysis()
 const loading = computed(() => !data.value && busy.value)
@@ -63,7 +67,7 @@ async function position(scroll = 0) {
   if (panel.value) panel.value.scrollTop = scroll
 }
 function open(next: View) {
-  history.value.push({ view: { ...view.value }, expanded: new Set(expanded.value), details: new Set(details.value), scroll: panel.value?.scrollTop ?? 0, mask: mask.value, person: person.value, taxonomyMode: taxonomyMode.value })
+  history.value.push({ view: { ...view.value }, expanded: new Set(expanded.value), details: new Set(details.value), scroll: panel.value?.scrollTop ?? 0, mask: mask.value, person: person.value, taxonomyMode: taxonomyMode.value, mapScroll: { ...mapScroll.value } })
   warning.value = ''
   view.value = next
   void position()
@@ -75,8 +79,18 @@ function back() {
   details.value = previous.details; warning.value = ''
   mask.value = previous.mask; person.value = previous.person
   taxonomyMode.value = previous.taxonomyMode
+  mapScroll.value = previous.mapScroll
   normalizeView()
   void position(previous.scroll)
+}
+async function openCategory(status: Status, id: number) {
+  open({ kind: 'category', status })
+  if (status !== 'green') details.value.add(id)
+  await position()
+  const target = panel.value?.querySelector<HTMLElement>(`[data-category-skill="${id}"]`)
+  target?.focus({ preventScroll: true })
+  target?.scrollIntoView({ block: 'nearest' })
+  target?.animate([{ backgroundColor: '#fff0b5' }, { backgroundColor: 'transparent' }], { duration: 2200 })
 }
 function toggle(id: number) { expanded.value.has(id) ? expanded.value.delete(id) : expanded.value.add(id) }
 function toggleDetail(id: number) { details.value.has(id) ? details.value.delete(id) : details.value.add(id) }
@@ -97,6 +111,7 @@ function pathPerson(id: number | null) {
 }
 function reset() {
   if (view.value.kind === 'path') pathGraph.value?.reset()
+  else if (isMap.value) { mapScroll.value = { x: 0, y: 0 }; mapView.value?.reset() }
   else if (view.value.kind === 'taxonomy') { expanded.value = new Set(); void nextTick(() => taxonomyGraph.value?.reset()) }
   else if (view.value.kind === 'category') details.value = new Set()
   void position()
@@ -106,6 +121,7 @@ function start() {
   details.value = new Set(); warning.value = ''
   simulationOpen.value = false
   taxonomyMode.value = 'graph'
+  mapScroll.value = { x: 0, y: 0 }
   reset(); window.scrollTo({ top: 0 })
   void load(emptyFilters())
 }
@@ -139,17 +155,17 @@ onMounted(() => load())
       <section id="mainframe" class="mainframe" :inert="busy" :aria-busy="busy" aria-label="Taxonomie und Skillübersichten">
         <div class="toolbar">
           <button class="mask-button" :class="{ active: mask }" :aria-pressed="mask" aria-label="Organisationsmaske" :title="mask ? 'Organisationsmaske aktiv: nur Soll-Skills' : 'Organisationsmaske aus: gesamter Katalog'" @click="mask = !mask"><MaskIcon name="organisation"/><span>Organisation</span></button>
-          <label class="person-control" :class="{ active: person !== null }" title="Persönlichen Skillbesitz anzeigen"><MaskIcon name="person"/><select v-model="person" aria-label="Mitarbeitermaske" @change="pathPerson(person)"><option :value="null">Keiner</option><option v-for="employee in data.employees" :key="employee.id" :value="employee.id">{{ employee.first_name }} {{ employee.last_name }}</option></select></label>
+          <label v-if="!isMap" class="person-control" :class="{ active: person !== null }" title="Persönlichen Skillbesitz anzeigen"><MaskIcon name="person"/><select v-model="person" aria-label="Mitarbeitermaske" @change="pathPerson(person)"><option :value="null">Keiner</option><option v-for="employee in data.employees" :key="employee.id" :value="employee.id">{{ employee.first_name }} {{ employee.last_name }}</option></select></label>
           <button class="mask-button" :class="{ active: simulationActive }" :aria-pressed="simulationActive" :aria-expanded="simulationOpen" aria-label="Simulation" aria-haspopup="dialog" :title="simulationActive ? 'Simulation aktiv: Aufgaben oder Mitarbeitende ausgeschlossen' : 'Simulation: alle Aufgaben und Mitarbeitenden eingeschlossen'" @click="simulationOpen = true"><MaskIcon name="simulation"/><span>Simulation{{ simulationActive ? ' · aktiv' : '' }}</span></button>
           <button class="back-button" :disabled="!history.length" @click="back">← Zurück</button>
         </div>
         <div ref="panel" class="mainframe-content" tabindex="0" aria-label="Scrollbarer Inhaltsbereich">
-          <div class="view-heading"><p class="eyebrow">{{ view.kind === 'path' ? 'Entwicklungspfad' : view.kind === 'category' ? 'Organisationsbezogene Übersicht' : view.kind === 'group' ? 'Skill-Liste' : taxonomyMode === 'graph' ? 'Wissensgraph · Gruppen erkunden' : 'Hierarchisches Inhaltsverzeichnis' }}</p><h2 ref="heading" tabindex="-1" :class="view.kind === 'category' ? `category-heading ${view.status}` : ''"><StatusDot v-if="group" :color="group.color" :personal="tree.personal" />{{ title }}</h2></div>
-          <div v-if="view.kind === 'taxonomy'" class="taxonomy-switch" role="group" aria-label="Taxonomieansicht"><button :aria-pressed="taxonomyMode === 'tree'" @click="taxonomyMode = 'tree'">Baum</button><button :aria-pressed="taxonomyMode === 'graph'" @click="taxonomyMode = 'graph'">Graph</button></div>
+          <div class="view-heading"><p class="eyebrow">{{ view.kind === 'path' ? 'Entwicklungspfad' : view.kind === 'category' ? 'Organisationsbezogene Übersicht' : view.kind === 'group' ? 'Skill-Liste' : taxonomyMode === 'graph' ? 'Wissensgraph · Gruppen erkunden' : taxonomyMode === 'map' ? 'Skillkarte · Wissensträger im Überblick' : 'Hierarchisches Inhaltsverzeichnis' }}</p><h2 ref="heading" tabindex="-1" :class="view.kind === 'category' ? `category-heading ${view.status}` : ''"><StatusDot v-if="group" :color="group.color" :personal="tree.personal" />{{ title }}</h2></div>
+          <div v-if="view.kind === 'taxonomy'" class="taxonomy-switch" role="group" aria-label="Taxonomieansicht"><button :aria-pressed="taxonomyMode === 'tree'" @click="taxonomyMode = 'tree'">Baum</button><button :aria-pressed="taxonomyMode === 'graph'" @click="taxonomyMode = 'graph'">Graph</button><button :aria-pressed="taxonomyMode === 'map'" @click="taxonomyMode = 'map'">Karte</button></div>
           <div v-if="warning" ref="warningBox" class="notice warning" role="alert" tabindex="-1">{{ warning }}<button aria-label="Warnung schließen" @click="closeWarning">×</button></div>
           <p v-if="!data.summary.required_skill_count" class="notice">Kein Soll-Bedarf vorhanden. Die vollständige Taxonomie bleibt zugänglich.</p>
-          <p v-if="view.kind === 'taxonomy' || view.kind === 'group'" class="view-hint">{{ person !== null ? 'Persönlicher Besitz: Grün = vorhanden, Rot = nicht vorhanden.' : 'Organisationsbewertung: Rot vor Gelb vor Grün; ohne Soll-Bedarf neutral.' }} {{ mask && data.required_skill_ids.length ? 'Nur benötigte Skills.' : 'Gesamter Skillkatalog.' }}</p>
-          <template v-if="view.kind === 'taxonomy'"><TaxonomyGraph v-if="taxonomyMode === 'graph'" ref="taxonomyGraph" :nodes="tree.roots" :expanded="expanded" :personal="tree.personal" @toggle="toggle" @open="open({ kind: 'group', id: $event })"/><TaxonomyBranch v-else :nodes="tree.roots" :expanded="expanded" :personal="tree.personal" @toggle="toggle" @open="open({ kind: 'group', id: $event })"/><p v-if="!tree.roots.length" class="empty">Leere Liste</p></template>
+          <p v-if="view.kind === 'taxonomy' || view.kind === 'group'" class="view-hint">{{ person !== null && !isMap ? 'Persönlicher Besitz: Grün = vorhanden, Rot = nicht vorhanden.' : 'Organisationsbewertung: Rot vor Gelb vor Grün; ohne Soll-Bedarf neutral.' }} {{ mask && data.required_skill_ids.length ? 'Nur benötigte Skills.' : 'Gesamter Skillkatalog.' }}</p>
+          <template v-if="view.kind === 'taxonomy'"><SkillMap v-if="isMap" ref="mapView" :data="data" :mask="mask" :scroll="mapScroll" @scroll="mapScroll = $event" @path="openPath" @category="openCategory"/><TaxonomyGraph v-else-if="taxonomyMode === 'graph'" ref="taxonomyGraph" :nodes="tree.roots" :expanded="expanded" :personal="tree.personal" @toggle="toggle" @open="open({ kind: 'group', id: $event })"/><TaxonomyBranch v-else :nodes="tree.roots" :expanded="expanded" :personal="tree.personal" @toggle="toggle" @open="open({ kind: 'group', id: $event })"/><p v-if="!tree.roots.length" class="empty">Leere Liste</p></template>
           <template v-else-if="view.kind === 'group'">
             <ul v-if="group?.skills.length" class="skill-list"><li v-for="skill in group.skills" :key="skill.id"><StatusDot :color="tree.color(skill.id)" :personal="tree.personal"/><button class="text-link" @click="openPath(skill.id, person)">{{ skill.name }}</button></li></ul><p v-else class="empty">Leere Liste</p>
           </template>
@@ -159,7 +175,7 @@ onMounted(() => load())
           </template>
           <DevelopmentGraph v-else-if="view.kind === 'path'" ref="pathGraph" :data="data" :target="view.id" :person="person" :full="view.full" @person="pathPerson" @full="view = { ...view, full: $event }" />
         </div>
-        <div class="frame-footer"><span>{{ view.kind === 'category' ? `${category.length} Skills` : view.kind === 'path' ? 'DAG verschieben · Zoomen · Pfadumfang wählen' : 'Gruppen aufklappen · Untergruppe öffnen' }}</span><button @click="reset" title="Ansicht zurücksetzen; Masken bleiben unverändert">↺ Reset</button></div>
+        <div class="frame-footer"><span>{{ view.kind === 'category' ? `${category.length} Skills` : view.kind === 'path' ? 'DAG verschieben · Zoomen · Pfadumfang wählen' : isMap ? 'Skillkarte · Status und Pfade öffnen' : 'Gruppen aufklappen · Untergruppe öffnen' }}</span><button @click="reset" title="Ansicht zurücksetzen; Masken bleiben unverändert">↺ Reset</button></div>
       </section>
       <SimulationMenu v-if="simulationOpen" :simulation="data.simulation" :busy="busy" :error="error" @toggle="simulate" @change="load" @retry="load(requested)" @close="simulationOpen = false" />
     </template>
