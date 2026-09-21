@@ -15,20 +15,20 @@ final class AnalysisRepository
     {
     }
 
-    public function load(): AnalysisDataset
+    public function load(?int $organisationId = null): AnalysisDataset
     {
         // All reads of this request see the same InnoDB snapshot (A-16).
         $this->connection->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
         $this->connection->beginTransaction();
         try {
             $organisations = $this->connection->query(
-                'SELECT id, name FROM organisation_unit ORDER BY id LIMIT 2',
+                'SELECT id, name FROM organisation_unit ORDER BY id',
             )->fetchAll();
-            if (count($organisations) !== 1) {
-                throw new InvalidDataset('Es muss genau eine vorbereitete Organisationseinheit vorhanden sein.');
-            }
-            $organisation = $organisations[0];
-            $organisation['id'] = (int) $organisation['id'];
+            if (!$organisations) throw new InvalidDataset('Keine Organisationseinheit vorhanden.');
+            $organisations = array_map(static fn ($row) => ['id' => (int) $row['id'], 'name' => $row['name']], $organisations);
+            $organisationId ??= $organisations[0]['id'];
+            $organisation = array_column($organisations, null, 'id')[$organisationId] ?? null;
+            if ($organisation === null) throw new \InvalidArgumentException('Unbekannte Organisationseinheit.');
 
             $skills = [];
             foreach ($this->connection->query('SELECT id, name, skill_group_id FROM skill ORDER BY id') as $row) {
@@ -85,9 +85,15 @@ final class AnalysisRepository
                     'parent_skill_group_id' => $row['parent_skill_group_id'] === null ? null : (int) $row['parent_skill_group_id'],
                 ];
             }
+            $scenarios = [];
+            foreach ($this->forOrganisation('SELECT id, name FROM scenario WHERE organisation_unit_id = ? ORDER BY id LIMIT 9', $organisationId) as $row) {
+                $statement = $this->connection->prepare('SELECT st.task_id FROM scenario_task st JOIN task t ON t.id = st.task_id WHERE st.scenario_id = ? AND t.organisation_unit_id = ? ORDER BY st.task_id');
+                $statement->execute([(int) $row['id'], $organisationId]);
+                $scenarios[] = ['id' => (int) $row['id'], 'name' => $row['name'], 'task_ids' => array_map('intval', $statement->fetchAll(PDO::FETCH_COLUMN))];
+            }
             $this->connection->commit();
 
-            return new AnalysisDataset($organisation, $skills, array_values($tasks), array_values($employees), $prerequisites, $groups);
+            return new AnalysisDataset($organisation, $skills, array_values($tasks), array_values($employees), $prerequisites, $groups, $organisations, $scenarios);
         } catch (Throwable $exception) {
             if ($this->connection->inTransaction()) {
                 $this->connection->rollBack();

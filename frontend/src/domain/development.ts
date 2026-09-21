@@ -8,7 +8,7 @@ export interface CandidateSet {
   minimum_distance: number | null
   recommendations: { distance_threshold: boolean; unfilled_slots: boolean }
 }
-export interface Development { estimated_skill_ids: number[]; edges: Edge[]; candidates: CandidateSet[] }
+export interface Development { estimated_skill_ids: number[]; edges: Edge[]; candidates: CandidateSet[]; maximum_distance?: number }
 export interface PathNode extends Skill { owned: boolean | null; target: boolean; x: number; y: number }
 export interface DevelopmentPath { nodes: PathNode[]; edges: Edge[]; distance: number | null }
 

@@ -7,8 +7,9 @@ namespace Skilltree\Domain\Analysis;
 /** A-09..A-12, S-01..S-03/S-09. Receives the same snapshot as the dashboard. */
 final class DevelopmentAnalysis
 {
-    public function calculate(AnalysisDataset $data, array $analysis): array
+    public function calculate(AnalysisDataset $data, array $analysis, int $maximumDistance = 3): array
     {
+        if ($maximumDistance < 1 || $maximumDistance > 5) throw new \InvalidArgumentException('Distanzgrenze muss zwischen 1 und 5 liegen.');
         $graph = new SkillGraph(array_keys($data->skills), $data->prerequisites);
         // Deliberately derive availability from ALL prepared tasks, not current filters.
         $direct = [];
@@ -49,19 +50,20 @@ final class DevelopmentAnalysis
                 ?: ($a['employee_id'] <=> $b['employee_id'])
             );
             $minimum = $ranked[0]['distance'] ?? null;
+            $ranked = array_values(array_filter($ranked, static fn ($candidate) => $candidate['distance'] <= $maximumDistance));
             $candidates[] = [
                 'skill_id' => $skill['id'],
                 'slots' => array_pad(array_slice($ranked, 0, 3), 3, null),
                 'minimum_distance' => $minimum,
                 'recommendations' => [
-                    'distance_threshold' => $minimum !== null && $minimum >= 3,
+                    'distance_threshold' => $minimum !== null && $minimum > $maximumDistance,
                     'unfilled_slots' => count($ranked) < 3,
                 ],
             ];
         }
         $ids = array_keys($estimated);
         sort($ids, SORT_NUMERIC);
-        return ['estimated_skill_ids' => $ids, 'edges' => $edges, 'candidates' => $candidates];
+        return ['estimated_skill_ids' => $ids, 'edges' => $edges, 'candidates' => $candidates, 'maximum_distance' => $maximumDistance];
     }
 
     private static function sortName(string $name): string

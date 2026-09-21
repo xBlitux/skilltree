@@ -1,5 +1,6 @@
-export interface SimulationFilters { excluded_task_ids: number[]; excluded_employee_ids: number[] }
+export interface SimulationFilters { excluded_task_ids: number[]; excluded_employee_ids: number[]; organisation?: number; maximum_distance?: number }
 export interface Simulation extends SimulationFilters {
+  scenarios?: { id: number; name: string; task_ids: number[] }[]
   tasks: { id: number; name: string }[]
   employees: { id: number; first_name: string; last_name: string }[]
 }

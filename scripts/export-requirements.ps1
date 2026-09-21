@@ -1,10 +1,11 @@
-﻿param([switch]$ApplyGreenRevision, [switch]$Check)
+﻿param([switch]$ApplyGreenRevision, [switch]$ApplyTaxonomyGraphRevision, [switch]$Check)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 Add-Type -AssemblyName System.IO.Compression
 $project = Split-Path $PSScriptRoot -Parent
 $file = Join-Path $project 'docs/Anforderungskatalog_16092026.xlsx'
-$mode = if ($ApplyGreenRevision) { [IO.Compression.ZipArchiveMode]::Update } else { [IO.Compression.ZipArchiveMode]::Read }
+
+$mode = if ($ApplyGreenRevision -or $applyTaxonomyGraphRevision) { [IO.Compression.ZipArchiveMode]::Update } else { [IO.Compression.ZipArchiveMode]::Read }
 $archive = [IO.Compression.ZipFile]::Open($file, $mode)
 try {
     $entry = $archive.GetEntry('xl/worksheets/sheet1.xml')
@@ -22,6 +23,20 @@ try {
         $cell.InnerText = $new
         $row.SetAttribute('ht', '92')
         $sheet.SelectSingleNode('//s:c[@r="A2"]/s:v', $ns).InnerText = 'Fachstand 18.09.2026; A-07 auf Nutzeranweisung am 19.09.2026 geändert; 54 aktive Anforderungen'
+        $stream = $entry.Open()
+        $stream.SetLength(0)
+        $sheet.Save($stream)
+        $stream.Dispose()
+    }
+    if ($applyTaxonomyGraphRevision) {
+        $row = $sheet.SelectSingleNode('//s:row[s:c/s:v="F-02"]', $ns)
+        $cell = $row.SelectSingleNode('s:c[starts-with(@r,"C")]/s:v', $ns)
+        $oldTaxonomy = 'Die Taxonomie muss als hierarchisches, auf- und zuklappbares Inhaltsverzeichnis umgesetzt werden. Gruppen ohne Untergruppen öffnen ihre Skill-Liste im Mainframe. Die Taxonomie wird im MVA nicht als Graph dargestellt; der separate Entwicklungs-DAG bleibt bestehen.'
+        $newTaxonomy = 'Die Taxonomie muss zum visuellen Vergleich zwischen hierarchischem, auf- und zuklappbarem Inhaltsverzeichnis und aufklappbarem Gruppengraphen umschaltbar sein. Die Graphansicht ist für diesen Versuch die Startansicht. Ein Klick auf eine Gruppe mit Untergruppen blendet deren direkte Untergruppen ein oder aus; Gruppen ohne Untergruppen öffnen ihre Skill-Liste im Mainframe. Skills erscheinen nicht als Graphknoten. Die Kreise übernehmen die Gruppenbewertung und zeigen die Anzahl aller eindeutigen Skills im aktuellen Maskenausschnitt unterhalb der Gruppe einschließlich direkt zugeordneter Skills, unabhängig vom Aufklappzustand. Gruppennamen stehen unter den Kreisen. Der separate Entwicklungs-DAG bleibt bestehen.'
+        if ($cell.InnerText -ne $oldTaxonomy -and $cell.InnerText -ne $newTaxonomy) { throw 'F-02 hat einen unerwarteten Inhalt.' }
+        $cell.InnerText = $newTaxonomy
+        $row.SetAttribute('ht', '180')
+        $sheet.SelectSingleNode('//s:c[@r="A2"]/s:v', $ns).InnerText = 'Fachstand 18.09.2026; A-07 am 19.09.2026 und F-02 (Graphversuch) am 20.09.2026 auf Nutzeranweisung geändert; 54 aktive Anforderungen'
         $stream = $entry.Open()
         $stream.SetLength(0)
         $sheet.Save($stream)

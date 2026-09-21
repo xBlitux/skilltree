@@ -1,6 +1,6 @@
 # Anforderungskatalog – Lesefassung
 
-**Stand:** Fachstand 18.09.2026; A-07 auf Nutzeranweisung am 19.09.2026 geändert; 54 aktive Anforderungen.
+**Stand:** Fachstand 18.09.2026 mit freigegebenen Revisionen bis 21.09.2026; 54 aktive Anforderungen, keine neuen IDs.
 
 Automatisch erzeugt aus `Anforderungskatalog_16092026.xlsx`. IDs, Prioritäten und Anforderungstexte sind identisch. Die Excel ist die führende Quelle; diese Datei nicht unabhängig bearbeiten. Zusammenführungen und Prioritätsänderungen sind in `Use-Cases_und_Entscheidungen(1).md`, Abschnitt 8, nachgewiesen.
 
@@ -18,7 +18,7 @@ Das Artefakt muss lokal unter XAMPP mit MariaDB ausführbar sein. Die technische
 
 ### G-04 — Muss
 
-Für Entwicklung und Evaluation muss genau eine mit Echtdaten befüllte Organisationseinheit des Praxispartners vorhanden und standardmäßig ausgewählt sein.
+Für Entwicklung und Evaluation muss eine mit Echtdaten befüllte Organisationseinheit des Praxispartners vorhanden sein. Weitere vorbereitete Organisationseinheiten dürfen vorhanden sein und ausgewählt werden; beim ersten Laden wird die Organisationseinheit mit der kleinsten ID ausgewählt.
 
 ### G-16 — Muss
 
@@ -50,7 +50,7 @@ Simulationszustände werden nicht dauerhaft gespeichert. Navigation und das Schl
 
 ### G-05 — Sollte
 
-Das Webinterface sollte eine Organisationseinheitsauswahl als funktionslosen UI-Dummy zeigen, um spätere Erweiterbarkeit anzudeuten. Daraus entsteht keine Verwaltungsfunktion.
+Das Webinterface sollte eine funktionsfähige Auswahl der in der Datenbank vorhandenen Organisationseinheiten anbieten. Ein Wechsel lädt ausschließlich die Aufgaben und Mitarbeitenden der gewählten Einheit und setzt Simulation, Masken, Navigation, Ansicht und Distanzgrenze auf den Ausgangszustand zurück. Daraus entsteht keine Verwaltungsfunktion.
 
 ### G-12 — Darf nicht
 
@@ -94,11 +94,11 @@ Für die hinterlegte Organisationseinheit muss der gemeinsame, vorbereitete Skil
 
 ### F-02 — Muss
 
-Die Taxonomie muss als hierarchisches, auf- und zuklappbares Inhaltsverzeichnis umgesetzt werden. Gruppen ohne Untergruppen öffnen ihre Skill-Liste im Mainframe. Die Taxonomie wird im MVA nicht als Graph dargestellt; der separate Entwicklungs-DAG bleibt bestehen.
+Die Taxonomie muss zum visuellen Vergleich zwischen hierarchischem, auf- und zuklappbarem Inhaltsverzeichnis und aufklappbarem Gruppengraphen umschaltbar sein. Die Graphansicht ist für diesen Versuch die Startansicht. Ein Klick auf eine Gruppe mit Untergruppen blendet deren direkte Untergruppen ein oder aus; Gruppen ohne Untergruppen öffnen ihre Skill-Liste im Mainframe. Skills erscheinen nicht als Graphknoten. Die Kreise übernehmen die Gruppenbewertung und zeigen die Anzahl aller eindeutigen Skills im aktuellen Maskenausschnitt unterhalb der Gruppe einschließlich direkt zugeordneter Skills, unabhängig vom Aufklappzustand. Gruppennamen stehen unter den Kreisen. Der separate Entwicklungs-DAG bleibt bestehen.
 
 ### F-03 — Muss
 
-Beim Start muss die oberste Hierarchieebene der Taxonomie vollständig sichtbar sein; tiefere Gruppen sind zunächst eingeklappt.
+Beim Start muss die oberste Hierarchieebene der Taxonomie sichtbar sein; tiefere Gruppen sind zunächst eingeklappt. Gruppen ohne sichtbare Skills im gesamten Unterbaum einschließlich direkt zugeordneter Skills werden auf allen Ebenen ausgeblendet, mit und ohne Organisationsmaske.
 
 ### F-04 — Muss
 
@@ -122,7 +122,7 @@ Der Nutzer muss die Organisationsmaske deaktivieren und erneut aktivieren könne
 
 ### F-11 — Muss
 
-Der Nutzer muss höchstens einen Mitarbeiter auswählen, wechseln oder über Keiner abwählen können. Die Mitarbeitermaske bewertet Skills im aktuellen Taxonomieausschnitt als vorhanden (grün) oder fehlend (rot), ohne Gelb. Gruppen zeigen eine dazu passende personenbezogene Bewertung. Die Organisationsmaske bestimmt weiterhin den Ausschnitt; Dashboard und Kategorieübersichten bleiben organisationsbezogen. Beim Start ist keine Person ausgewählt.
+In Baum, Graph und Skill-Listen muss der Nutzer höchstens einen Mitarbeiter auswählen, wechseln oder über Keiner abwählen können. Die Mitarbeitermaske bewertet Skills im aktuellen Taxonomieausschnitt als vorhanden (grün) oder fehlend (rot), ohne Gelb. Gruppen zeigen eine dazu passende personenbezogene Bewertung. In der ergänzenden Skillmatrix filtert die Auswahl Alle, einer oder mehrerer Mitarbeiter ausschließlich die sichtbaren Mitarbeiterspalten; Bewertung und Kennzahlen bleiben organisationsbezogen. Eine Einzelauswahl wird beim Ansichtswechsel übernommen; eine Mehrfachauswahl wird beim Verlassen der Matrix auf Keiner beziehungsweise Alle zurückgesetzt. Die Organisationsmaske bestimmt weiterhin den Ausschnitt; Dashboard und Kategorieübersichten bleiben organisationsbezogen. Beim Start ist keine Person ausgewählt.
 
 ### F-07 — Wird
 
@@ -156,7 +156,7 @@ Das Dashboard muss die Anzahl eindeutiger aktueller Soll-Skills je Ampelkategori
 
 ### A-07 — Muss
 
-Die grüne Kategorieübersicht muss eine Tabelle mit einer Zeile je grünem Soll-Skill anzeigen: zuerst die Skill-Bezeichnung, danach alle eingeschlossenen Mitarbeitenden, die diesen Skill tragen. Ein Klick auf die Skill-Bezeichnung öffnet unabhängig von der Mitarbeitermaske den allgemeinen Entwicklungspfad gemäß S-01/S-07; ist kein geschätzter Pfad verfügbar, erscheint die schließbare Warnbox.
+Die grüne Kategorieübersicht muss eine Tabelle mit einer Zeile je grünem Soll-Skill anzeigen: zuerst die Skill-Bezeichnung, danach alle eingeschlossenen Mitarbeitenden, die diesen Skill tragen. Ein Klick auf die Skill-Bezeichnung öffnet unabhängig von der Mitarbeitermaske den allgemeinen Entwicklungspfad gemäß S-01/S-07; ist kein geschätzter Pfad verfügbar, erscheint ein bestätigungspflichtiges Popup ohne Änderung der bisherigen Scrollposition.
 
 ### A-08 — Muss
 
@@ -176,7 +176,7 @@ Je rotem oder gelbem Soll-Skill müssen drei Kandidatenplätze vorgesehen sein. 
 
 ### A-12 — Muss
 
-Beträgt die kleinste Distanz der zulässigen Kandidaten mindestens 3, muss auf die Prüfung zusätzlichen Personaleinsatzes oder externer Fertigkeitsgewinnung hingewiesen werden. Unabhängig davon lösen unbesetzte Kandidatenplätze eine Handlungsempfehlung wegen fehlender weiterer interner Personen aus. Bei null Kandidaten gilt dieser zweite Auslöser; eine kleinste Distanz wird nicht erfunden.
+Die maximale Fertigkeitsdistanz für Kandidaten beträgt standardmäßig 3 und ist in den roten und gelben Kategorieübersichten gemeinsam zwischen 1 und 5 einstellbar. Kandidaten mit größerer Distanz dürfen nicht vorgeschlagen werden; dadurch fehlende Plätze bleiben Unbesetzt. Beträgt bereits die kleinste Distanz der ansonsten zulässigen Kandidaten vor diesem Distanzfilter mehr als die eingestellte Grenze, muss auf die Prüfung zusätzlichen Personaleinsatzes oder externer Fertigkeitsgewinnung hingewiesen werden. Unabhängig davon lösen unbesetzte Kandidatenplätze die Warnung aus: Nicht alle Kandidatenplätze sind besetzt. Weitere Maßnahmen prüfen, da geeignete interne Personen fehlen. Bei null Kandidaten wird keine kleinste Distanz erfunden. Die Grenze bleibt bei Navigation erhalten und wird bei Start oder Organisationswechsel auf 3 zurückgesetzt.
 
 ### A-13 — Muss
 
@@ -198,7 +198,7 @@ Die gelbe und rote Kategorieübersicht muss je Skill einen aufklappbaren Detailb
 
 ### S-01 — Muss
 
-Für einen geschätzten Skill muss ein Entwicklungs-DAG mit Zielskill und sämtlichen direkten und indirekten Voraussetzungen verfügbar sein. Geschätzt sind alle direkten und impliziten Soll-Skills des ungefilterten Aufgabenbestands sowie Skills mit mindestens einer eigenen gespeicherten Voraussetzung. Ein geschätzter Skill ohne Voraussetzungen hat einen DAG nur aus dem Zielknoten. Für andere Skills erscheint beim Pfadaufruf eine schließbare Warnbox; es wird kein DAG geöffnet.
+Für einen geschätzten Skill muss ein Entwicklungs-DAG mit Zielskill und sämtlichen direkten und indirekten Voraussetzungen verfügbar sein. Geschätzt sind alle direkten und impliziten Soll-Skills des ungefilterten Aufgabenbestands sowie Skills mit mindestens einer eigenen gespeicherten Voraussetzung. Ein geschätzter Skill ohne Voraussetzungen hat einen DAG nur aus dem Zielknoten. Für andere Skills erscheint beim Pfadaufruf ein bestätigungspflichtiges Popup ohne Änderung der bisherigen Scrollposition; es wird kein DAG geöffnet.
 
 ### S-02 — Muss
 

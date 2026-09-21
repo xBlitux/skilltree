@@ -4,6 +4,8 @@ import { emptyFilters, type SimulationFilters } from '../domain/simulation'
 export const analysisEndpoint = 'api/analysis'
 export async function loadAnalysis(filters: SimulationFilters = emptyFilters(), signal?: AbortSignal): Promise<Analysis> {
   const query = new URLSearchParams()
+  if (filters.organisation) query.set('organisation', String(filters.organisation))
+  if (filters.maximum_distance !== undefined && filters.maximum_distance !== 3) query.set('maximum_distance', String(filters.maximum_distance))
   if (filters.excluded_task_ids.length) query.set('excluded_tasks', filters.excluded_task_ids.join(','))
   if (filters.excluded_employee_ids.length) query.set('excluded_employees', filters.excluded_employee_ids.join(','))
   const endpoint = query.size ? `${analysisEndpoint}?${query}` : analysisEndpoint

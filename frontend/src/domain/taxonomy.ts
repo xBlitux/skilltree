@@ -7,6 +7,7 @@ export interface Group { id: number; name: string; parent_skill_group_id: number
 export interface RatedSkill extends Skill { status: Status; carrier_count: number; employee_ids: number[] }
 export interface Employee { id: number; first_name: string; last_name: string; available_skill_ids: number[] }
 export interface Analysis {
+  organisations?: { id: number; name: string }[]
   simulation: Simulation
   development: Development
   organisation: { id: number; name: string }
@@ -18,6 +19,7 @@ export interface Analysis {
 }
 export interface TreeNode extends Group { children: TreeNode[]; skills: Skill[]; count: number; color: Color }
 export const labels: Record<Color, string> = { red: 'Kritisch', yellow: 'Handlungsbedarf', green: 'Unkritisch', neutral: 'Ohne Soll-Bewertung' }
+export const statusLinkTitle = (status: Status) => `${labels[status]} • ${status === 'green' ? 'Wissensträger anzeigen' : 'Entwicklungskandidaten anzeigen'}`
 const weight: Record<Color, number> = { neutral: 0, green: 1, yellow: 2, red: 3 }
 export function taxonomyView(data: Analysis, mask: boolean, employeeId: number | null) {
   const ratings = new Map(data.skills.map(skill => [skill.id, skill.status]))
@@ -51,9 +53,9 @@ export function taxonomyView(data: Analysis, mask: boolean, employeeId: number |
     node.count = node.skills.length + node.children.reduce((sum, child) => sum + child.count, 0)
     const colors = [...node.skills.map(skill => color(skill.id)), ...node.children.map(child => child.color)]
     node.color = colors.reduce<Color>((worst, value) => weight[value] > weight[worst] ? value : worst, 'neutral')
-    if (mask && required.size) node.children = node.children.filter(child => child.count > 0)
+    node.children = node.children.filter(child => child.count > 0)
     node.children.sort((a, b) => a.name.localeCompare(b.name, 'de'))
   }
   roots.sort((a, b) => a.name.localeCompare(b.name, 'de'))
-  return { roots, nodes, color, personal: !!person }
+  return { roots: roots.filter(root => root.count > 0), nodes, color, personal: !!person }
 }

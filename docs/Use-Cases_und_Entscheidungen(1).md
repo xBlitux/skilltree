@@ -3,6 +3,9 @@
 **Stand:** 18.09.2026 – eingefrorener fachlicher Ausgangsstand.  
 **Geltung:** Ergänzung zum [Anforderungskatalog_16092026.xlsx](Anforderungskatalog_16092026.xlsx). Anforderungen und Prioritäten stehen im Katalog; dieses Dokument konkretisiert Bedienabläufe und Abnahmebeispiele. Es ist kein Auftrag für eine weitere Konzeptionsrunde.
 
+
+**Freigegebene Revision vom 21.09.2026:** Die nachfolgenden historischen Abnahmebeispiele gelten mit den Änderungen in [Featureideen](Featureideen.md): Organisationsauswahl statt Dummy; leere Gruppen ausblenden; Matrix mit Mehrfach-Spaltenfilter; Statuslinks in organisationsbezogenen Skill-Listen; Warnpopup statt Warnzeile; Kandidatengrenze standardmäßig 3, einstellbar 1–5, nur Distanzen bis einschließlich Grenze. Die frühere Warnbedingung „mindestens 3“ gilt nicht mehr. Bei Budgetplanung ist Distanz 3 zulässig und löst bei Standardgrenze keine Distanzwarnung aus. Betroffene bestehende IDs: G-04/G-05, F-03/F-11, A-07/A-12, S-01. Excel und Lesefassung wurden synchron geändert; keine neuen IDs/Prioritäten. Neue Bedienabläufe und API-Felder stehen im verlinkten Dokument.
+
 ## 1. Verbindliche Leitlinien
 
 - Das MVA wertet vorbereitete Daten aus; keine Datenpflegeoberfläche, neue LLM-Schätzung oder persistente Simulation (D-06/D-10, A-13/A-15).
@@ -25,7 +28,7 @@ Die Voraussetzungen in Bedingung 1 werden vollständig und über beliebig viele 
 
 Damit gelten **auch implizite Soll-Skills ohne eigene Voraussetzungen als geschätzte Grundlagenskills**. Ihr allgemeiner DAG besteht aus dem Zielknoten. Sie erhalten bei roter oder gelber Soll-Bewertung regulär Entwicklungskandidaten und Distanzen. Die zuvor beschriebene Ausnahme für ausschließlich als Voraussetzung vorkommende Grundlagenskills ist aufgehoben.
 
-Trifft keine Bedingung zu, öffnet ein Pfadaufruf keinen DAG, sondern eine kurze schließbare Warnbox, beispielsweise „Für diesen Skill liegt kein geschätzter Entwicklungspfad vor.“ Die vorherige Ansicht bleibt zugänglich. Fehlende Daten außerhalb des geschätzten Bestands werden nicht als bekannte Voraussetzungslosigkeit interpretiert.
+Trifft keine Bedingung zu, öffnet ein Pfadaufruf keinen DAG, sondern ein bestätigungspflichtiges Popup mit „Für diesen Skill liegt kein geschätzter Entwicklungspfad vor.“ Nach Bestätigung bleiben die vorherige Ansicht und Scrollposition erhalten. Fehlende Daten außerhalb des geschätzten Bestands werden nicht als bekannte Voraussetzungslosigkeit interpretiert.
 
 **Abnahmebeispiel:** Eine Aufgabe benötigt Z; Z benötigt B; B benötigt A; A hat keine Voraussetzungen. Z, B und A gelten sämtlich als geschätzt. A kann als einzelner Zielknoten geöffnet werden. Nach Ausschluss der Aufgabe bleiben alle drei Skills geschätzt, auch wenn sie dadurch nicht mehr zum aktuellen Soll gehören. Ein anderer katalogisierter Skill Q ohne Aufgabenbezug, ohne Zugehörigkeit zu dieser Voraussetzungshülle und ohne eigene gespeicherte Voraussetzungen erhält beim Pfadaufruf die Warnbox.
 
@@ -64,8 +67,9 @@ A-11/A-12 sehen drei Plätze vor; unbesetzte Plätze sind keine Personen und bek
 | Zulässige Kandidaten und Distanzen | Erwartetes Ergebnis |
 |---|---|
 | Zwei Personen: 1, 2 | Ein unbesetzter Platz löst eine Handlungsempfehlung aus; Distanzschwelle greift nicht |
-| Drei Personen: 1, 2, 4 | Kein unbesetzter Platz; kleinste Distanz unter 3; keiner der beiden Auslöser greift |
-| Drei Personen: 3, 4, 5 | Hinweis auf Prüfung zusätzlichen Personaleinsatzes oder externer Fertigkeitsgewinnung |
+| Drei Personen: 1, 2, 4; Grenze 3 | Distanz 4 ausgeschlossen; ein unbesetzter Platz, nur Hinweis auf fehlende geeignete interne Personen |
+| Drei Personen: 3, 3, 3; Grenze 3 | Alle drei zulässig, keine Warnung |
+| Drei Personen: 4, 4, 5; Grenze 3 | Alle ausgeschlossen; drei unbesetzte Plätze und zusätzlich Hinweis auf zusätzlichen Personaleinsatz oder externe Fertigkeitsgewinnung |
 | Keine Person | Unbesetzte Plätze lösen die Empfehlung aus; keine kleinste Distanz berechnen |
 
 ## 4. Oberfläche und Zustände
@@ -260,6 +264,18 @@ Abnahme mit dem lokalen synthetischen Seed:
 
 Automatisierte Tests decken zusätzlich geteilten Aufgabenbedarf, Ausschluss/Wiedereinschluss, unveränderte Ausgangsobjekte und Fehlerantworten ab. Die vollständige Anforderungsprüfung mit Grenzen steht in `Abnahme_Schritt7.md`.
 
+### Freigegebener Graphversuch zu UC-01 bis UC-04/UC-10 (20.09.2026)
+
+Auf ausdrückliche Nutzeranweisung ersetzt F-02 den bisherigen Ausschluss des Taxonomiegraphen durch zwei umschaltbare Ansichten. Diese Ergänzung hat Vorrang vor historischen Aussagen zum entfallenen Graphen in diesem Dokument und in den alten Wireframes. Excel und daraus erzeugte Lesefassung wurden synchron aktualisiert; keine neuen Anforderungs-IDs oder Prioritäten.
+
+- Startansicht für den Versuch: **Graph**, nur oberste Gruppenebene (F-03). **Baum/Graph** erhalten den gemeinsamen Aufklappzustand und die Masken. Der Graph enthält ausschließlich Gruppen und Eltern-Kind-Kanten; keine Skill- oder Voraussetzungsknoten.
+- Ein Klick auf eine Gruppe blendet direkte Untergruppen ein/aus. Beim Zuklappen verschwinden alle sichtbaren Nachfahren; deren vorheriger Aufklappzustand bleibt wie im Baum für erneutes Öffnen erhalten. Blattgruppen öffnen die bestehende Skill-Liste. Bei direkt einer inneren Gruppe zugeordneten Skills bleibt unter dem Graphen ein Listenlink verfügbar, sobald die Gruppe aufgeklappt ist.
+- Kreise zeigen die gleiche eindeutige Skillzahl und Ampel wie das Inhaltsverzeichnis, einschließlich eingeklappter Nachfahren; der Maskenausschnitt gilt weiterhin (F-04/F-06/F-10/F-11). Gruppenname unter dem Kreis, vollständiger Name und Status zusätzlich als Tooltip und zugängliche Beschriftung.
+- Graphfläche verschieben und zoomen; Tastatur: Tab zu Gruppen, Enter/Leertaste aktivieren, Pfeiltasten verschieben, +/− zoomen. Einpassen verändert keine Aufklappung. Bei geänderter sichtbarer Hierarchie wird neu eingepasst. Zurück aus Listen/Kategorien restauriert Ansichtstyp, Gruppen und Masken; der Graph wird neu eingepasst. Reset klappt Gruppen zu und passt ein; Start wählt Graph und setzt wie bisher den Ausgangszustand zurück (S-08).
+- Visuelle Referenz: `Knowledge_Graph_Taxonomie.png`; dunkle Fläche, farbige Kreise, feine Verbindungen. Deterministische radiale Anordnung statt einer laufenden physikalischen Simulation.
+
+API unverändert: `GET /api/analysis`, bestehende `taxonomy.groups`, `taxonomy.skills`, Bewertungen und Besitzmengen. Keine Speicherung oder Datenbankänderung. Abnahmebeispiele im synthetischen Seed: Testtaxonomie zeigt zunächst **26**, ohne Organisationsmaske **29**; nach Aufklappen vier sichtbare Gruppenknoten. Datenkompetenzen → Daten verarbeiten und analysieren → Analyse und Daten öffnet 13 Soll-Skills beziehungsweise 14 Katalogskills. Anna fehlen Soll-Skills der Organisationskompetenzen (persönlich rot), organisationsbezogen ist diese Gruppe gelb. Ohne Aufgaben zeigt die Wurzel 29 neutral bewertete Skills bei Dashboard 0/0/0.
+
 ## 6. Wireframes und ihre Geltung
 
 Die PNGs unter `wireframes/` bleiben unverändert und dienen als visuelle Referenzen. Verbindlich sind Katalog und dieses Dokument; alte Zeichnungsnotizen erweitern sie nicht.
@@ -275,7 +291,7 @@ Die PNGs unter `wireframes/` bleiben unverändert und dienen als visuelle Refere
 | `Kandidaten_Gelb.png`, `Kandidaten_Rot.png` | Drei Kandidatenplätze, Distanz, Pfadlink, bei Gelb einziger Wissensträger |
 | `Entwicklungspfad_allgemein.png`, `Entwicklungspfad_Wechsel.png` | Allgemeiner DAG und Wechsel zwischen Allgemein und Personenbezug |
 | `Entwicklungspfad_spezifisch.png` | Separater DAG, Zielskill, Personenauswahl, Zurück, Ansichtssteuerung; Verbleibend/Vollständig gemäß S-06 unabhängig von verkürzter Zeichnungsbeschriftung |
-| `Knowledge_Graph_Taxonomie.png` | Nur historische Inspiration für die verworfene Taxonomiegraph-Variante; keine Umsetzungsvorgabe |
+| `Knowledge_Graph_Taxonomie.png` | Seit Nutzerfreigabe vom 20.09.2026 visuelle Referenz für den umschaltbaren Graphversuch, siehe Ergänzung zu UC-01 bis UC-04/UC-10 |
 
 Simulationsmenü und Hover-Texte bleiben Teil der beschriebenen Bedienung. Es müssen keine weiteren Wireframes vor Entwicklungsbeginn erstellt werden.
 

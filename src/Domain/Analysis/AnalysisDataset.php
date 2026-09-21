@@ -22,6 +22,8 @@ final readonly class AnalysisDataset
         public array $employees,
         public array $prerequisites,
         public array $groups = [],
+        public array $organisations = [],
+        public array $scenarios = [],
     ) {
     }
 }

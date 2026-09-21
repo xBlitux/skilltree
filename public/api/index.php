@@ -69,7 +69,7 @@ $app->get('/health/database', static function (
 });
 
 $app->get('/analysis', new AnalysisAction(
-    static fn () => (new AnalysisRepository(ConnectionFactory::fromEnvironment()))->load(),
+    static fn (?int $organisation = null) => (new AnalysisRepository(ConnectionFactory::fromEnvironment()))->load($organisation),
 ));
 
 $app->run();

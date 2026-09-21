@@ -96,7 +96,8 @@ final class AnalysisActionTest extends TestCase
     {
         foreach ([['excluded_tasks' => '-1'], ['excluded_tasks' => '1,'], ['excluded_tasks' => ['1']],
             ['excluded_employees' => '1.5'], ['excluded_employees' => '9999999999999999999999'],
-            ['excluded_tasks' => '999'], ['unexpected' => '1']] as $query) {
+            ['excluded_tasks' => '999'], ['unexpected' => '1'], ['organisation' => '1,2'], ['organisation' => ['1']],
+            ['maximum_distance' => '0'], ['maximum_distance' => '6'], ['maximum_distance' => ''], ['maximum_distance' => '1,2']] as $query) {
             $response = $this->request(static fn () => new AnalysisDataset(['id' => 1, 'name' => 'Test'], [], [], [], []), $query);
             self::assertSame(400, $response->getStatusCode());
             $body = json_decode((string) $response->getBody(), true);

@@ -7,6 +7,7 @@ test('XAMPP: dashboard, implicit Soll, masks and navigation', async ({ page }) =
   await expect(page.getByRole('button', { name: 'Kritisch: 3 Skills anzeigen', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Handlungsbedarf: 7 Skills anzeigen' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Unkritisch: 16 Skills anzeigen' })).toBeVisible()
+  await page.getByRole('button', { name: 'Baum', exact: true }).click()
   const root = page.getByRole('button', { name: /Testtaxonomie/ })
   await expect(root).toHaveAttribute('aria-expanded', 'false')
   await expect(root.getByRole('img')).toHaveAttribute('aria-label', 'Kritisch')
