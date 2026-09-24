@@ -38,14 +38,17 @@ final class AnalysisRepository
 
             $tasks = [];
             foreach ($this->forOrganisation(
-                'SELECT id, name FROM task WHERE organisation_unit_id = ? ORDER BY id', $organisation['id'],
+                'SELECT t.id, t.name FROM task t
+                 JOIN organisation_unit_task ot ON ot.task_id = t.id
+                 WHERE ot.organisation_unit_id = ? ORDER BY t.id', $organisation['id'],
             ) as $row) {
                 $id = (int) $row['id'];
                 $tasks[$id] = ['id' => $id, 'name' => $row['name'], 'direct_skill_ids' => []];
             }
             foreach ($this->forOrganisation(
                 'SELECT ts.task_id, ts.skill_id FROM task_skill ts
-                 JOIN task t ON t.id = ts.task_id WHERE t.organisation_unit_id = ? ORDER BY ts.task_id, ts.skill_id',
+                 JOIN organisation_unit_task ot ON ot.task_id = ts.task_id
+                 WHERE ot.organisation_unit_id = ? ORDER BY ts.task_id, ts.skill_id',
                 $organisation['id'],
             ) as $row) {
                 $tasks[(int) $row['task_id']]['direct_skill_ids'][] = (int) $row['skill_id'];
@@ -53,7 +56,9 @@ final class AnalysisRepository
 
             $employees = [];
             foreach ($this->forOrganisation(
-                'SELECT id, first_name, last_name FROM employee WHERE organisation_unit_id = ? ORDER BY id',
+                'SELECT e.id, e.first_name, e.last_name FROM employee e
+                 JOIN organisation_unit_employee oe ON oe.employee_id = e.id
+                 WHERE oe.organisation_unit_id = ? ORDER BY e.id',
                 $organisation['id'],
             ) as $row) {
                 $id = (int) $row['id'];
@@ -64,8 +69,7 @@ final class AnalysisRepository
             }
             foreach ($this->forOrganisation(
                 'SELECT es.employee_id, es.skill_id FROM employee_skill es
-                 JOIN employee e ON e.id = es.employee_id
-                 WHERE e.organisation_unit_id = ? ORDER BY es.employee_id, es.skill_id',
+                 WHERE es.organisation_unit_id = ? ORDER BY es.employee_id, es.skill_id',
                 $organisation['id'],
             ) as $row) {
                 $employees[(int) $row['employee_id']]['direct_skill_ids'][] = (int) $row['skill_id'];
@@ -87,7 +91,7 @@ final class AnalysisRepository
             }
             $scenarios = [];
             foreach ($this->forOrganisation('SELECT id, name FROM scenario WHERE organisation_unit_id = ? ORDER BY id LIMIT 9', $organisationId) as $row) {
-                $statement = $this->connection->prepare('SELECT st.task_id FROM scenario_task st JOIN task t ON t.id = st.task_id WHERE st.scenario_id = ? AND t.organisation_unit_id = ? ORDER BY st.task_id');
+                $statement = $this->connection->prepare('SELECT task_id FROM scenario_task WHERE scenario_id = ? AND organisation_unit_id = ? ORDER BY task_id');
                 $statement->execute([(int) $row['id'], $organisationId]);
                 $scenarios[] = ['id' => (int) $row['id'], 'name' => $row['name'], 'task_ids' => array_map('intval', $statement->fetchAll(PDO::FETCH_COLUMN))];
             }

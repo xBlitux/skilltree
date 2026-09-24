@@ -1,0 +1,71 @@
+import { expect, test, type Page } from '@playwright/test'
+
+// Created and removed by scripts/check-rework.php --browser, never permanent seed data.
+test.skip(process.env.SKILLTREE_REWORK_TEST !== '1', 'Requires the temporary rework fixture runner')
+
+async function selectOrganisation(page: Page, id: number) {
+  const response = page.waitForResponse(r => r.url().includes(`/api/analysis?organisation=${id}`))
+  await page.getByRole('combobox', { name: 'Organisationseinheit' }).selectOption(String(id))
+  expect((await response).status()).toBe(200)
+}
+
+test('m:n: shared people have separate possession, candidates, paths and simulation across organisations', async ({ page, request }) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  const health = await request.get('api/health/database')
+  expect(await health.json()).toEqual({ status: 'ok', database: 'rework_skilltree' })
+  const beforeResponse = await request.get('api/analysis?organisation=101')
+  expect(beforeResponse.status()).toBe(200)
+  expect(beforeResponse.headers()['cache-control']).toBe('no-store')
+  const before = await beforeResponse.json()
+  const after = await (await request.get('api/analysis?organisation=102')).json()
+  expect(before.tasks).toEqual(after.tasks)
+  expect(before.employees.map((e: {id: number}) => e.id)).toEqual([1, 2])
+  expect(after.employees.map((e: {id: number}) => e.id)).toEqual([1, 2])
+  expect(before.employees[0].available_skill_ids).toEqual([21, 22])
+  expect(after.employees[0].available_skill_ids).toEqual([1, 21, 22, 23])
+  expect((await request.get('api/analysis?organisation=101&excluded_employees=3')).status()).toBe(400)
+  expect((await request.get('api/analysis?organisation=101&excluded_tasks=11')).status()).toBe(400)
+
+  await page.goto('./')
+  await selectOrganisation(page, 101)
+  await expect(page.locator('.metric-number')).toHaveText(['5', '0', '2'])
+  await page.getByRole('button', { name: 'Matrix', exact: true }).click()
+  const row = page.locator('[data-map-skill="1"]')
+  await expect(page.locator('.map-person')).toHaveText(['Anna Adler', 'Ben Berger'])
+  await expect(row.locator('.possession')).toHaveText(['×', '×'])
+  await row.locator('.possession').first().click()
+  await expect(page.locator('.distance')).toHaveText('Fertigkeitsdistanz: 2')
+  await page.getByRole('button', { name: 'Kritisch: 5 Skills anzeigen', exact: true }).click()
+  await page.getByRole('button', { name: 'Datenanalyse: Details', exact: true }).click()
+  const card = page.getByRole('article', { name: 'Datenanalyse', exact: true })
+  await expect(card.locator('tbody tr').first()).toContainText('Anna Adler')
+  await expect(card.locator('tbody tr').first().locator('td').nth(2)).toHaveText('2')
+
+  await selectOrganisation(page, 102)
+  await expect(page.locator('.metric-number')).toHaveText(['3', '0', '4'])
+  await expect(page.getByRole('combobox', { name: 'Mitarbeitermaske' }).locator('option:checked')).toHaveText('Keiner')
+  await page.getByRole('button', { name: 'Matrix', exact: true }).click()
+  await expect(row.locator('.possession')).toHaveText(['✓', '✓'])
+  await expect(row.locator('.map-available')).toHaveText('2')
+  await row.locator('.possession').first().click()
+  await expect(page.locator('.distance')).toHaveText('Fertigkeitsdistanz: 0')
+
+  await page.getByRole('button', { name: 'Simulation', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Ausfall simulieren' })
+  const simulation = page.waitForResponse(r => r.url().includes('excluded_employees=1'))
+  await dialog.getByRole('checkbox', { name: 'Anna Adler' }).uncheck()
+  expect((await simulation).status()).toBe(200)
+  await expect(dialog.locator('fieldset')).toBeEnabled()
+  await dialog.getByRole('button', { name: 'Schließen', exact: true }).click()
+  await expect(page.locator('.metric-number')).toHaveText(['3', '4', '0'])
+
+  await selectOrganisation(page, 101)
+  await expect(page.locator('.metric-number')).toHaveText(['5', '0', '2'])
+  await expect(page.getByRole('button', { name: 'Simulation', exact: true })).toHaveAttribute('aria-pressed', 'false')
+  await page.getByRole('button', { name: 'Matrix', exact: true }).click()
+  await expect(row.locator('.possession')).toHaveText(['×', '×'])
+  await selectOrganisation(page, 103)
+  await expect(page.locator('.metric-number')).toHaveText(['0', '0', '0'])
+  expect(errors).toEqual([])
+})

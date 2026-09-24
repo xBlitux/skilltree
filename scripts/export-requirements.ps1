@@ -1,11 +1,11 @@
-﻿param([switch]$ApplyGreenRevision, [switch]$ApplyTaxonomyGraphRevision, [switch]$Check)
+﻿param([switch]$ApplyGreenRevision, [switch]$ApplyTaxonomyGraphRevision, [switch]$ApplyOrganisationRevision, [switch]$Check)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 Add-Type -AssemblyName System.IO.Compression
 $project = Split-Path $PSScriptRoot -Parent
 $file = Join-Path $project 'docs/Anforderungskatalog_16092026.xlsx'
 
-$mode = if ($ApplyGreenRevision -or $applyTaxonomyGraphRevision) { [IO.Compression.ZipArchiveMode]::Update } else { [IO.Compression.ZipArchiveMode]::Read }
+$mode = if ($ApplyGreenRevision -or $applyTaxonomyGraphRevision -or $ApplyOrganisationRevision) { [IO.Compression.ZipArchiveMode]::Update } else { [IO.Compression.ZipArchiveMode]::Read }
 $archive = [IO.Compression.ZipFile]::Open($file, $mode)
 try {
     $entry = $archive.GetEntry('xl/worksheets/sheet1.xml')
@@ -37,6 +37,25 @@ try {
         $cell.InnerText = $newTaxonomy
         $row.SetAttribute('ht', '180')
         $sheet.SelectSingleNode('//s:c[@r="A2"]/s:v', $ns).InnerText = 'Fachstand 18.09.2026; A-07 am 19.09.2026 und F-02 (Graphversuch) am 20.09.2026 auf Nutzeranweisung geändert; 54 aktive Anforderungen'
+        $stream = $entry.Open()
+        $stream.SetLength(0)
+        $sheet.Save($stream)
+        $stream.Dispose()
+    }
+    if ($ApplyOrganisationRevision) {
+        $revisions = @{
+            'G-06' = 'Mitarbeitende und Aufgaben werden Organisationseinheiten über m:n-Zuordnungen zugeordnet. Derselbe Mitarbeiter und dieselbe Aufgabe können mehreren Einheiten angehören, ohne ihre Stammdatensätze zu duplizieren. Vorher- und Nachher-Stände werden als getrennte vorbereitete Organisationseinheiten betrachtet. Direkte Mitarbeiter-Skills werden je Organisationszuordnung separat gespeichert; derselbe Skill darf für dieselbe Person in mehreren Einheiten vorkommen, innerhalb einer Einheit jedoch nur einmal. Skillzuordnungen setzen eine gültige Organisationszuordnung der Person voraus.'
+            'G-05' = 'Das Webinterface sollte eine funktionsfähige Auswahl der in der Datenbank vorhandenen Organisationseinheiten anbieten. Ein Wechsel lädt ausschließlich die zugeordneten Aufgaben und Mitarbeitenden sowie die für diese Einheit gespeicherten Mitarbeiter-Skills und setzt Simulation, Masken, Navigation, Ansicht und Distanzgrenze auf den Ausgangszustand zurück. Daraus entsteht keine Verwaltungsfunktion.'
+            'D-07' = 'Für jede eingeschlossene Aufgabe müssen ihre direkt zugeordneten Skills und sämtliche eindeutigen direkten und indirekten Voraussetzungen als benötigt gelten. Die direkten Skillanforderungen einer Aufgabe gelten in allen zugeordneten Organisationseinheiten identisch. Die impliziten Zuordnungen werden bei der Auswertung hergeleitet und nicht zusätzlich dauerhaft gespeichert.'
+            'D-08' = 'Für jeden eingeschlossenen Mitarbeiter müssen ausschließlich seine in der ausgewählten Organisationseinheit direkt zugeordneten Skills und sämtliche eindeutigen direkten und indirekten Voraussetzungen als vorhanden gelten. Skillzuordnungen derselben Person in anderen Einheiten werden nicht übernommen. Die impliziten Zuordnungen werden bei der Auswertung hergeleitet und nicht zusätzlich dauerhaft gespeichert.'
+        }
+        foreach ($id in $revisions.Keys) {
+            $row = $sheet.SelectSingleNode("//s:row[s:c/s:v='$id']", $ns)
+            if (!$row) { throw "Anforderung $id fehlt." }
+            $row.SelectSingleNode('s:c[starts-with(@r,"C")]/s:v', $ns).InnerText = $revisions[$id]
+            $row.SetAttribute('ht', $(if ($id -eq 'G-06') { '150' } else { '105' }))
+        }
+        $sheet.SelectSingleNode('//s:c[@r="A2"]/s:v', $ns).InnerText = 'Fachstand 18.09.2026 mit freigegebenen Revisionen bis 24.09.2026; 54 aktive Anforderungen, keine neuen IDs'
         $stream = $entry.Open()
         $stream.SetLength(0)
         $sheet.Save($stream)

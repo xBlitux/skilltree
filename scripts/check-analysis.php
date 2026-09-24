@@ -14,19 +14,22 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 try {
     Dotenv::createImmutable(dirname(__DIR__))->safeLoad();
     $value = static fn (string $key) => $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
-    if ($value('DB_NAME') !== 'testdata_skilltree'
+    $reworkFixture = in_array('--rework-fixture', $argv, true);
+    $expectedDatabase = $reworkFixture ? 'rework_skilltree' : 'testdata_skilltree';
+    $expectedUser = $reworkFixture ? 'db_architect' : 'skilltree_test_reader';
+    if ($value('DB_NAME') !== $expectedDatabase
         || !in_array($value('DB_HOST'), ['localhost', '127.0.0.1'], true)
-        || $value('DB_USER') !== 'skilltree_test_reader') {
+        || $value('DB_USER') !== $expectedUser) {
         throw new RuntimeException('Test abgebrochen: lokale Testdatenbank mit Lesebenutzer erforderlich.');
     }
 
     $connection = ConnectionFactory::fromEnvironment();
-    if ($connection->query('SELECT DATABASE()')->fetchColumn() !== 'testdata_skilltree') {
+    if ($connection->query('SELECT DATABASE()')->fetchColumn() !== $expectedDatabase) {
         throw new RuntimeException('Test abgebrochen: verbundenes Datenbankziel stimmt nicht.');
     }
     $data = (new AnalysisRepository($connection))->load();
     if (array_column($data->organisations, 'id') !== [1,2,3] || $data->scenarios[0]['task_ids'] !== [9,10]) throw new RuntimeException('Organisationen/Szenarien fehlen.');
-    if ((int)$connection->query('SELECT COUNT(*) FROM scenario_task st JOIN scenario s ON s.id=st.scenario_id JOIN task t ON t.id=st.task_id WHERE s.organisation_unit_id <> t.organisation_unit_id')->fetchColumn() !== 0) throw new RuntimeException('Organisationsfremde Szenarioaufgaben.');
+    if ((int)$connection->query('SELECT COUNT(*) FROM scenario_task st JOIN scenario s ON s.id=st.scenario_id LEFT JOIN organisation_unit_task ot ON ot.task_id=st.task_id AND ot.organisation_unit_id=s.organisation_unit_id WHERE ot.task_id IS NULL OR st.organisation_unit_id<>s.organisation_unit_id')->fetchColumn() !== 0) throw new RuntimeException('Organisationsfremde Szenarioaufgaben.');
     foreach ([2 => ['counts' => ['red'=>1,'yellow'=>3,'green'=>4], 'people'=>[6,7,8], 'tasks'=>[11,12,13]],
               3 => ['counts' => ['red'=>0,'yellow'=>5,'green'=>1], 'people'=>[9,10,11], 'tasks'=>[14,15,16]]] as $id => $expected) {
         $unit = (new AnalysisRepository($connection))->load($id);
@@ -123,7 +126,7 @@ try {
     $check($noEmployees['summary']['counts'] === ['red' => 26, 'yellow' => 0, 'green' => 0], 'Ohne Personen muessen alle Soll-Skills rot sein.');
     $check(serialize((new AnalysisRepository($connection))->load()) === serialize($data), 'Die Simulation darf die gelesenen Stammdaten nicht aendern.');
     echo "OK: Simulation ohne Anna=6/4/16, ohne Aufgabe 9=3/3/16, ohne Personen=26/0/0, ohne beide=0/0/0. Stammdaten unveraendert.\n";
-    echo "OK: testdata_skilltree, 10 Aufgaben, 5 Personen, Soll=26, Ist=23, Rot=3, Gelb=7, Gruen=16.\n";
+    echo "OK: $expectedDatabase, 10 Aufgaben, 5 Personen, Soll=26, Ist=23, Rot=3, Gelb=7, Gruen=16.\n";
     echo "29 Katalogskills, 10 Gruppen, vier Ebenen und Kandidaten/Distanzen der Datenmigration stimmen.\n";
     echo "Alle 26 Skillbewertungen, 12 DAG-Kanten, transitiven Aufgabenmengen und impliziten Wissenstraeger stimmen.\n";
     echo "6 Skills sind ausschliesslich implizit im Soll. Direkte Zuordnungen: 20 Aufgaben-Skills / 45 Mitarbeiter-Skills. Nur lesend geprueft.\n";
