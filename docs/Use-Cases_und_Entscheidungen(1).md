@@ -378,6 +378,26 @@ Die unveränderten fachlichen Abnahmebeispiele des bisherigen synthetischen Best
 werden zusätzlich auf dem neuen Schema geprüft. Prüfberichte und Befehle stehen
 im aktuellen Abschnitt der README.
 
+### Revision zu UC-09: Szenarien schließen zugeordnete Aufgaben aus (24.09.2026)
+
+Auf ausdrückliche Nutzeranweisung wurde A-13 im Excel-Katalog ergänzt und die
+Lesefassung daraus neu erzeugt: Einträge in `scenario_task` sind Ausschlüsse.
+Alle übrigen Aufgaben der ausgewählten Organisation bleiben aktiv. Das Aktivieren
+ersetzt bisherige Aufgabenausschlüsse; Mitarbeiterausschlüsse bleiben erhalten.
+Ein Szenario ohne Einträge setzt die Aufgabenausschlüsse auf die leere Menge zurück.
+Bestehende Zuordnungen bleiben bestehen; es gibt keine Migration.
+
+Der API-Vertrag behält `simulation.scenarios: [{id, name, task_ids}]` bei, aber
+`task_ids` bedeutet nun auszuschließende Aufgaben. Synthetisches Beispiel:
+Aufgaben `[1, 2, 3]`, Szenario `{id: 1, name: "Ausfall", task_ids: [2]}` und bisher
+ausgeschlossener Mitarbeiter 7 ergeben `excluded_task_ids: [2]` und unverändert
+`excluded_employee_ids: [7]`; aktiv bleiben Aufgaben 1 und 3. Bei `task_ids: []`
+werden alle drei Aufgaben eingeschlossen. Der Tooltip lautet `Szenario "Ausfall" aktivieren`.
+Die Checkboxen lassen sich anschließend wie bisher manuell ändern.
+
+Auf Nutzerwunsch keine Datenbankabfragen oder Testausführungen in diesem Durchlauf.
+Abnahme durch den Nutzer anhand dieser Beispiele und der angepassten Browsertests.
+
 ## 6. Wireframes und ihre Geltung
 
 Die PNGs unter `wireframes/` bleiben unverändert und dienen als visuelle Referenzen. Verbindlich sind Katalog und dieses Dokument; alte Zeichnungsnotizen erweitern sie nicht.

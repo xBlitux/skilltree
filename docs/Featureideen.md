@@ -22,9 +22,9 @@ Ohne geschätzten Pfad erscheint ein modales Popup. OK, Escape oder ein Klick au
 
 Die Auswahl enthält alle vorbereiteten Organisationseinheiten. Ohne Parameter wird die kleinste ID gewählt; bei einem Wechsel werden Simulation, Mitarbeiterfilter, Organisationsmaske, Navigation, Aufklappung, Darstellung und Distanzgrenze zurückgesetzt. Erst ein erfolgreicher Abruf ersetzt die angezeigten Daten; bei Fehlern bleibt der vorherige Datensatz erhalten, Wiederholen verwendet das angeforderte Ziel. Neuladen beginnt wieder mit der kleinsten ID. Keine Verwaltungsoberfläche.
 
-`scenario.organisation_unit_id` ordnet jedes Szenario fest einer Organisationseinheit zu. Die API liefert ausschließlich deren erste neun Szenarien, nach ID sortiert. Die Buttons werden unabhängig von Datenbank-IDs fortlaufend mit 1–9 beschriftet; bei weniger Einträgen erscheinen entsprechend weniger Buttons. Der Tooltip lautet „Szenario [Name] aktivieren“, Hover grün. Einheiten ohne Szenarien zeigen keine Szenariobuttons. Weitere Datenbankeinträge bleiben gespeichert, werden nach den ersten neun aber nicht angeboten.
+`scenario.organisation_unit_id` ordnet jedes Szenario fest einer Organisationseinheit zu. Die API liefert ausschließlich deren erste neun Szenarien, nach ID sortiert. Die Buttons werden unabhängig von Datenbank-IDs fortlaufend mit 1–9 beschriftet; bei weniger Einträgen erscheinen entsprechend weniger Buttons. Der Tooltip lautet `Szenario "[Name]" aktivieren`. Einheiten ohne Szenarien zeigen keine Szenariobuttons. Weitere Datenbankeinträge bleiben gespeichert, werden nach den ersten neun aber nicht angeboten.
 
-Die Verknüpfungen in `scenario_task` bestimmen die eingeschlossenen Aufgaben. Sie sollen ausschließlich Aufgaben derselben Einheit referenzieren; die Leseabfrage begrenzt Aufgaben zusätzlich auf diese Einheit. Ein Szenario ohne Aufgaben schließt alle Aufgaben aus. Mitarbeiterausschlüsse bleiben erhalten; danach sind die Checkboxen weiterhin manuell veränderbar. Das Simulationsfenster schließt auch per Klick auf den grauen Hintergrund, ohne Filter zu verwerfen oder laufende Berechnungen abzubrechen. Klicks innerhalb einschließlich Dialogabstand und Ziehen nach außen schließen es nicht. Es werden keine Szenario- oder Simulationsdaten aus der Anwendung gespeichert.
+Seit der Nutzerrevision vom 24.09.2026 bestimmen die Verknüpfungen in `scenario_task` die ausgeschlossenen Aufgaben. Alle nicht zugeordneten Aufgaben bleiben aktiv. Sie sollen ausschließlich Aufgaben derselben Einheit referenzieren; die Leseabfrage begrenzt Aufgaben zusätzlich auf diese Einheit. Ein Szenario ohne Zuordnungen schließt keine Aufgabe aus. Die Szenarioauswahl ersetzt die bisherigen Aufgabenausschlüsse. Mitarbeiterausschlüsse bleiben erhalten; danach sind die Checkboxen weiterhin manuell veränderbar. Das Simulationsfenster schließt auch per Klick auf den grauen Hintergrund, ohne Filter zu verwerfen oder laufende Berechnungen abzubrechen. Klicks innerhalb einschließlich Dialogabstand und Ziehen nach außen schließen es nicht. Es werden keine Szenario- oder Simulationsdaten aus der Anwendung gespeichert.
 
 Testdatenerweiterung ausschließlich `testdata_skilltree`: zwei Einheiten, sechs Personen, sechs Aufgaben und nun neun getrennte Szenarien (drei je Einheit). Gemeinsamer Skillkatalog und ursprüngliche Einheit bleiben unverändert. Die bisher organisationsübergreifend verknüpften Szenarien wurden mit `php scripts/split-test-scenarios.php --apply` transaktional aufgeteilt; ohne Flag liest das Skript lediglich die Zuordnungen. Es akzeptiert nur den bekannten früheren Beispieldatensatz. IDs 1/2/3 bleiben bei Einheit 1, Einheit 2 erhält 4/6/8, Einheit 3 erhält 5/7/9. Die Aufgabenauswahlen der nachfolgenden Tabelle bleiben identisch.
 
@@ -36,7 +36,11 @@ Neuaufbau nach ursprünglichem Seed und bereitgestelltem Szenarioschema mit Orga
 | 2 Testorganisation Datenservice | 11–13 | 6–8 | 1/3/4 |
 | 3 Testorganisation Verwaltung | 14–16 | 9–11 | 0/5/1 |
 
-| Szenario | Einheit 1 | Einheit 2 | Einheit 3 |
+Die folgenden unveränderten Zuordnungen gelten seit 24.09.2026 als **Ausschlüsse**.
+Insbesondere schließt „Erweiterter Betrieb“ mit diesen Zuordnungen alle Aufgaben aus.
+Die Szenarionamen und gespeicherten Zuordnungen werden nicht automatisch umgedeutet oder migriert.
+
+| Szenario | Ausgeschlossene Aufgaben Einheit 1 | Ausgeschlossene Aufgaben Einheit 2 | Ausgeschlossene Aufgaben Einheit 3 |
 |---|---|---|---|
 | 1 Kernaufgaben | 9 Beschaffung vorbereiten, 10 Sicherheitsvorfall bearbeiten | 11 | 14 |
 | 2 Analyse und Planung | 1, 2, 3 | 11, 13 | 14, 16 |
@@ -52,9 +56,9 @@ Die Distanzwarnung prüft das Minimum vor Anwendung der Distanzgrenze. Nur bei M
 
 ## API und Tests
 
-`GET /api/analysis?organisation=2&maximum_distance=2&excluded_tasks=12&excluded_employees=6`. Alle Parameter optional; Standardorganisation kleinste ID, Distanz 3. Unbekannte Organisation, organisationsfremde Ausschluss-IDs und Grenzen außerhalb 1–5 liefern 400. Alle Daten stammen aus einem konsistenten Snapshot. Neue Antwortfelder: `organisations: [{id,name}]`, `simulation.scenarios: [{id,name,task_ids}]`, `development.maximum_distance`. `minimum_distance` bleibt das Minimum vor dem Distanzfilter, `slots` enthält nur zulässige Vorschläge und null-Plätze. Kein API-Aufruf beim reinen Matrix-Spaltenfilter.
+`GET /api/analysis?organisation=2&maximum_distance=2&excluded_tasks=12&excluded_employees=6`. Alle Parameter optional; Standardorganisation kleinste ID, Distanz 3. Unbekannte Organisation, organisationsfremde Ausschluss-IDs und Grenzen außerhalb 1–5 liefern 400. Alle Daten stammen aus einem konsistenten Snapshot. Neue Antwortfelder: `organisations: [{id,name}]`, `simulation.scenarios: [{id,name,task_ids}]` (`task_ids` enthält seit 24.09.2026 die auszuschließenden Aufgaben), `development.maximum_distance`. `minimum_distance` bleibt das Minimum vor dem Distanzfilter, `slots` enthält nur zulässige Vorschläge und null-Plätze. Kein API-Aufruf beim reinen Matrix-Spaltenfilter.
 
-Beispiele: Datenanalyse Pfad=4 und 3/2/0; Budgetplanung ohne Anna-Ausschluss minimale Kandidatendistanz=3: bei Grenze 3 keine Distanzwarnung, bei Grenze 2 drei leere Plätze und beide Warnungen. Datenmigration: bei Grenze 2 Ben und David, dritter Platz unbesetzt; bei Grenze 3 zusätzlich Anna. Szenario 1 der Einheit 1 schließt genau Aufgaben 9/10 ein.
+Beispiele: Datenanalyse Pfad=4 und 3/2/0; Budgetplanung ohne Anna-Ausschluss minimale Kandidatendistanz=3: bei Grenze 3 keine Distanzwarnung, bei Grenze 2 drei leere Plätze und beide Warnungen. Datenmigration: bei Grenze 2 Ben und David, dritter Platz unbesetzt; bei Grenze 3 zusätzlich Anna. Szenario 1 der Einheit 1 schließt bei unveränderten Zuordnungen genau Aufgaben 9/10 aus.
 
 Prüfbefehle: `composer test`, `composer test:database`, in `frontend/` `npm test`, `npm run build`, `npm run test:e2e`. Browser: lokaler Edge unter XAMPP, synthetische Daten. Echtdaten und andere Browser bleiben offen; vollständige Matrix nicht virtualisiert.
 

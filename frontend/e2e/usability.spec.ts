@@ -66,11 +66,11 @@ test('scenario buttons are local and numbered by position, with up to nine confi
   await expect(page.locator('.metric-number')).toHaveText(['1','3','4'])
   await page.getByRole('button', { name: 'Simulation', exact: true }).click()
   await expect(page.locator('.scenario-buttons button')).toHaveText(['1','2','3'])
-  await expect(page.locator('.scenario-buttons button').first()).toHaveAttribute('title','Szenario Kernaufgaben aktivieren')
-  await page.getByRole('button', { name: 'Szenario Kernaufgaben aktivieren' }).click()
+  await expect(page.locator('.scenario-buttons button').first()).toHaveAttribute('title','Szenario "Kernaufgaben" aktivieren')
+  await page.getByRole('button', { name: 'Szenario "Kernaufgaben" aktivieren' }).click()
   await expect(page.getByRole('dialog').locator('fieldset')).toBeEnabled()
-  await expect(page.getByRole('checkbox', { name: 'Test: Daten analysieren' })).toBeChecked()
-  await expect(page.getByRole('checkbox', { name: 'Test: Migration begleiten' })).not.toBeChecked()
+  await expect(page.getByRole('checkbox', { name: 'Test: Daten analysieren' })).not.toBeChecked()
+  await expect(page.getByRole('checkbox', { name: 'Test: Migration begleiten' })).toBeChecked()
 
   // Synthetic API fixture tests >3, cap at 9, and IDs unrelated to visible labels.
   const data = units[0]
@@ -79,7 +79,7 @@ test('scenario buttons are local and numbered by position, with up to nine confi
   await page.goto('./')
   await page.getByRole('button', { name: 'Simulation', exact: true }).click()
   await expect(page.locator('.scenario-buttons button')).toHaveText(['1','2','3','4','5','6','7','8','9'])
-  await expect(page.locator('.scenario-buttons button').last()).toHaveAttribute('title','Szenario Testfall 9 aktivieren')
+  await expect(page.locator('.scenario-buttons button').last()).toHaveAttribute('title','Szenario "Testfall 9" aktivieren')
   await page.setViewportSize({width:390,height:844})
   expect(await page.getByRole('dialog').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
   await page.getByRole('dialog').screenshot({path:'test-results/scenarios-mobile.png'})

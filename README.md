@@ -6,6 +6,38 @@ Webbasiertes Minimum Viable Artifact zur Unterstützung von Personalbedarfs-, Wi
 **Technischer Stand:** Schritte 1–7 sind implementiert: Kernberechnung, Dashboard, hierarchische Taxonomie, Kategorieübersichten, Entwicklungskandidaten, allgemeiner/personenbezogener Entwicklungs-DAG sowie temporäre Simulation mit Zurück/Reset/Start. A-07 wurde auf ausdrücklichen Nutzerwunsch am 19.09.2026 zur skillbezogenen grünen Tabelle geändert. Die Anforderungsprüfung vom 20.09.2026 einschließlich offener Echtdaten-/Evaluationspunkte steht in [docs/Abnahme_Schritt7.md](docs/Abnahme_Schritt7.md).
 **Zeitbudget:** etwa 6–7 Tage Umsetzung.
 
+## Szenarien als Aufgabenausschlüsse (24.09.2026)
+
+Auf Nutzeranweisung gilt für A-13: `scenario_task` enthält die beim Aktivieren eines
+Szenarios auszuschließenden Aufgaben. Nicht zugeordnete Aufgaben bleiben aktiv;
+ein Szenario ohne Zuordnungen aktiviert alle Aufgaben. Die Auswahl ersetzt vorherige
+Aufgabenausschlüsse, erhält aber Mitarbeiterausschlüsse. Bestehende Zuordnungen bleiben
+unverändert und werden als Ausschlüsse interpretiert; eine Migration ist nicht vorgesehen.
+Der Hovertext lautet `Szenario "[Szenarioname]" aktivieren`.
+
+Der API-Feldname `simulation.scenarios[].task_ids` bleibt gleich und bezeichnet nun
+die auszuschließenden Aufgaben. Excel-Katalog, erzeugte Lesefassung und Use-Cases
+sind entsprechend angepasst. Bestehende Browsertest-Erwartungen wurden nachgezogen,
+aber auf Nutzerwunsch **keine Tests und keine Datenbankabfragen ausgeführt**.
+Manuelle Abnahme: ein Szenario mit einer Zuordnung schließt genau diese Aufgabe aus;
+ohne Zuordnungen sind alle Aufgaben aktiv; Mitarbeiterausschlüsse bleiben erhalten;
+Hover zeigt den Namen in Anführungszeichen. Vor dem Ausprobieren in `frontend/`
+`npm run build` ausführen und die Seite mit Strg+F5 neu laden.
+
+### Nachprüfung der ausgelieferten Szenariologik
+
+Beim gemeldeten Fehlverhalten enthielt der ausgelieferte Build `index-Df7l8Y3S.js`
+noch die alte Einschlusslogik, obwohl der Quellcode bereits Ausschlüsse berechnete.
+`npm run build` wurde erneut erfolgreich ausgeführt. Der HTTP-abrufbare neue Build
+enthält die Ausschlusslogik. Der neue Test
+`npm run test:e2e -- e2e/scenario-exclusions.spec.ts` war unter XAMPP/Edge erfolgreich:
+manueller Ausschluss, Szenario A → B → A → leeres Szenario, wieder aktivierte Aufgaben,
+Erhalt von Mitarbeiterausschlüssen und Hovertexte. Er verwendet ausschließlich
+synthetische API-Antworten und prüft die tatsächlich gesendeten Filter und Checkboxen.
+Der zusätzliche Zugriff mit der aktuellen `.env` wurde von MariaDB mit Fehler 1045
+(Zugriff verweigert) abgelehnt; ein Abgleich der realen Zuordnungen war deshalb nicht
+möglich. Keine Datenbankänderungen vorgenommen. Nach dem Build mit Strg+F5 neu laden.
+
 ## Aktueller Datenbankstand: m:n-Zuordnungen (24.09.2026)
 
 Auf ausdrücklichen Nutzerwunsch wurde die **leere lokale Strukturkopie `rework_skilltree`**
@@ -30,7 +62,7 @@ Die Anwendung benötigt ab diesem Stand das neue Schema.
 **Eigene Daten einpflegen:** Organisationen, Personen und Aufgaben anlegen, danach
 die beiden Mitgliedschaftstabellen befüllen und erst dann die organisationsbezogenen
 Mitarbeiter-Skills. Aufgaben-Skills werden einmal je Aufgabe hinterlegt. Für Szenarien
-zuerst das organisationsgebundene Szenario anlegen, dann dessen Aufgaben mit derselben
+zuerst das organisationsgebundene Szenario anlegen, dann die auszuschließenden Aufgaben mit derselben
 Organisations-ID zuordnen. Es gibt keine automatische Übernahme von Mitarbeiter-Skills
 beim Hinzufügen einer weiteren Mitgliedschaft. Einheiten dürfen zunächst leer sein.
 

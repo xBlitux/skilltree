@@ -180,7 +180,7 @@ Die maximale Fertigkeitsdistanz für Kandidaten beträgt standardmäßig 3 und i
 
 ### A-13 — Muss
 
-Aufgaben und Mitarbeitende müssen über ein Simulationsmenü temporär aus- und wieder eingeschlossen werden können. Ausgeschlossene Aufgaben tragen nicht zum Soll bei; ausgeschlossene Mitarbeitende nicht zum Ist oder Kandidatenpool. Stammdaten und persistente Zuordnungen bleiben unverändert.
+Aufgaben und Mitarbeitende müssen über ein Simulationsmenü temporär aus- und wieder eingeschlossen werden können. Ausgeschlossene Aufgaben tragen nicht zum Soll bei; ausgeschlossene Mitarbeitende nicht zum Ist oder Kandidatenpool. Stammdaten und persistente Zuordnungen bleiben unverändert. Bei Aktivierung eines vorbereiteten Szenarios bestimmen dessen Einträge in scenario_task die ausgeschlossenen Aufgaben der gewählten Organisationseinheit; alle nicht zugeordneten Aufgaben bleiben eingeschlossen. Die Szenarioauswahl ersetzt die bisherigen Aufgabenausschlüsse und erhält Mitarbeiterausschlüsse. Ein Szenario ohne Aufgabenzuordnungen schließt keine Aufgabe aus. Bestehende Szenariozuordnungen werden ohne Migration als Ausschlüsse interpretiert. Der Hovertext lautet: Szenario "[Szenarioname]" aktivieren.
 
 ### A-15 — Muss
 
