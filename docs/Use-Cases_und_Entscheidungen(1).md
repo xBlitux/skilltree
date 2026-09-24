@@ -276,6 +276,34 @@ Auf ausdrückliche Nutzeranweisung ersetzt F-02 den bisherigen Ausschluss des Ta
 
 API unverändert: `GET /api/analysis`, bestehende `taxonomy.groups`, `taxonomy.skills`, Bewertungen und Besitzmengen. Keine Speicherung oder Datenbankänderung. Abnahmebeispiele im synthetischen Seed: Testtaxonomie zeigt zunächst **26**, ohne Organisationsmaske **29**; nach Aufklappen vier sichtbare Gruppenknoten. Datenkompetenzen → Daten verarbeiten und analysieren → Analyse und Daten öffnet 13 Soll-Skills beziehungsweise 14 Katalogskills. Anna fehlen Soll-Skills der Organisationskompetenzen (persönlich rot), organisationsbezogen ist diese Gruppe gelb. Ohne Aufgaben zeigt die Wurzel 29 neutral bewertete Skills bei Dashboard 0/0/0.
 
+### Beschreibungen beim Hover zu UC-02/UC-05 (24.09.2026)
+
+Darstellungsergänzung auf Nutzerwunsch zu F-07 und A-07/A-08: Skillnamen in Skill-Liste,
+Matrix und grüner Kategorie zeigen die vorbereitete Skillbeschreibung als nativen
+Browser-Infotext (`title`). In Rot/Gelb gilt dies ausschließlich für den Skillnamen
+einer aufgeklappten Box; eine geschlossene Box hat keinen Beschreibungs-Infotext.
+Fehlende, leere oder ausschließlich aus Leerraum bestehende Beschreibungen erzeugen
+keinen Infotext. Die bestehenden Klickaktionen und der Personenbezug bleiben erhalten.
+Anzeigezeitpunkt und Gestaltung des nativen Infotexts bestimmt der Browser.
+
+API-Ergänzung: `GET /api/analysis` liefert `skill.description` unverändert aus der
+Datenbank sowohl unter `skills[].description` als auch `taxonomy.skills[].description`.
+Beispielwert (synthetisch): `"description": "Daten auswerten und Ergebnisse interpretieren."`.
+Es werden keine Beschreibungen erzeugt oder Stammdaten geändert. Prüfung: Beschreibung
+in Liste/Matrix/Grün, Auf-/Zuklappen in Rot/Gelb, fehlende/leere Beschreibungen und
+weiterhin funktionierende Pfadaufrufe mit synthetischen Browserantworten.
+
+### Organisations-Dummy zu UC-01/UC-10 (24.09.2026)
+
+Auf ausdrücklichen Nutzerwunsch steht „Hinzufügen...“ nach allen vorhandenen
+Organisationseinheiten als letzte Dropdownoption. Sie öffnet ausschließlich einen
+Hinweis auf die zukünftige Erweiterbarkeit. „Verstanden“, Außenklick auf den
+ausgegrauten Hintergrund oder Escape schließen das Popup; Klicks im Popuptext nicht.
+Die Auswahl springt sofort auf die bisherige Organisation zurück. Ansicht, Masken,
+Simulation und Berechnungsstand bleiben erhalten; der Dummy löst keinen API-Aufruf aus.
+Der Wechsel vorhandener Organisationseinheiten (G-04) und die Navigation (S-08/G-15)
+behalten ihr bisheriges Verhalten. Keine Anlagefunktion, API- oder Datenbankänderung.
+
 ## 6. Wireframes und ihre Geltung
 
 Die PNGs unter `wireframes/` bleiben unverändert und dienen als visuelle Referenzen. Verbindlich sind Katalog und dieses Dokument; alte Zeichnungsnotizen erweitern sie nicht.
