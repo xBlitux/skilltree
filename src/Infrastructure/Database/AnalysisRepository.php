@@ -31,9 +31,9 @@ final class AnalysisRepository
             if ($organisation === null) throw new \InvalidArgumentException('Unbekannte Organisationseinheit.');
 
             $skills = [];
-            foreach ($this->connection->query('SELECT id, name, skill_group_id FROM skill ORDER BY id') as $row) {
+            foreach ($this->connection->query('SELECT id, name, description, skill_group_id FROM skill ORDER BY id') as $row) {
                 $id = (int) $row['id'];
-                $skills[$id] = ['id' => $id, 'name' => $row['name'], 'skill_group_id' => (int) $row['skill_group_id']];
+                $skills[$id] = ['id' => $id, 'name' => $row['name'], 'description' => $row['description'], 'skill_group_id' => (int) $row['skill_group_id']];
             }
 
             $tasks = [];

@@ -9,7 +9,7 @@ async function changeOrganisation(page: Page, id: string) {
 }
 test('organisation selection isolates data, resets all context and scenario selection only changes tasks', async ({ page, request }) => {
   await page.goto('./')
-  await expect(page.getByRole('combobox', { name: 'Organisationseinheit' }).locator('option')).toHaveCount(3)
+  await expect(page.getByRole('combobox', { name: 'Organisationseinheit' }).locator('option:not([value="add"])')).toHaveCount(3)
   await page.getByRole('button', { name: 'Simulation', exact: true }).click()
   await page.getByRole('checkbox', { name: 'Anna Adler' }).uncheck()
   await expect(page.getByRole('dialog').locator('fieldset')).toBeEnabled()

@@ -32,6 +32,7 @@ const taxonomyGraph = ref<{ reset: () => void }>()
 const { data, busy, error, requested, load: requestAnalysis } = useAnalysis()
 const loading = computed(() => !data.value && busy.value)
 const simulationOpen = ref(false)
+const organisationNoticeOpen = ref(false)
 const simulationActive = computed(() => !!data.value && (data.value.simulation.excluded_task_ids.length + data.value.simulation.excluded_employee_ids.length > 0))
 const mask = ref(true)
 const person = ref<number | null>(null)
@@ -156,6 +157,15 @@ function resetUi() {
 async function start(organisation = data.value?.organisation.id) {
   if (await load({ ...emptyFilters(), organisation, maximum_distance: 3 })) resetUi()
 }
+function selectOrganisation(event: Event) {
+  const select = event.target as HTMLSelectElement
+  if (select.value === 'add') {
+    select.value = String(data.value?.organisation.id ?? '')
+    organisationNoticeOpen.value = true
+    return
+  }
+  void start(Number(select.value))
+}
 onMounted(() => load())
 </script>
 
@@ -164,10 +174,11 @@ onMounted(() => load())
   <header class="topbar">
     <div class="brand"><img :src="brandLogo" alt="ZUKUNFT." width="692" height="136" /></div>
     <div class="organisation-select">
-      <select :value="data?.organisation.id" :disabled="busy || !data" aria-label="Organisationseinheit" @change="start(Number(($event.target as HTMLSelectElement).value))"><option v-for="organisation in data?.organisations ?? (data ? [data.organisation] : [])" :key="organisation.id" :value="organisation.id">{{ organisation.name }}</option></select>
+      <select :value="data?.organisation.id" :disabled="busy || !data" aria-label="Organisationseinheit" @change="selectOrganisation"><option v-for="organisation in data?.organisations ?? (data ? [data.organisation] : [])" :key="organisation.id" :value="organisation.id">{{ organisation.name }}</option><option value="add">Hinzufügen...</option></select>
     </div>
     <button class="start-button" @click="start()">Start</button>
   </header>
+  <PathWarning v-if="organisationNoticeOpen" dialog-id="organisation-notice" heading="Organisationseinheit hinzufügen" message="Diese Funktion ist ein Dummy und zeigt die zukünftige Erweiterbarkeit des Artefakts. Neue Organisationseinheiten können hier noch nicht angelegt werden." button-label="Verstanden" @close="organisationNoticeOpen = false" />
   <main>
     <section v-if="loading" class="feedback" role="status">Die Skill-Analyse wird geladen …</section>
     <section v-else-if="error && !data" class="feedback" role="alert"><h1>Analyse nicht verfügbar</h1><p>{{ error }}</p><button @click="load(requested)">Erneut versuchen</button></section>
@@ -197,7 +208,7 @@ onMounted(() => load())
           <p v-if="view.kind === 'taxonomy' || view.kind === 'group'" class="view-hint">{{ person !== null && !isMap ? 'Persönlicher Besitz: Grün = vorhanden, Rot = nicht vorhanden.' : 'Organisationsbewertung: Rot vor Gelb vor Grün; ohne Soll-Bedarf neutral.' }} {{ mask && data.required_skill_ids.length ? 'Nur benötigte Skills.' : 'Gesamter Skillkatalog.' }}</p>
           <template v-if="view.kind === 'taxonomy'"><SkillMap v-if="isMap" ref="mapView" :data="data" :mask="mask" :people="matrixPeople" :scroll="mapScroll" @scroll="mapScroll = $event" @path="openPath" @category="openCategory"/><TaxonomyGraph v-else-if="taxonomyMode === 'graph'" ref="taxonomyGraph" :nodes="tree.roots" :expanded="expanded" :personal="tree.personal" @toggle="toggle" @open="open({ kind: 'group', id: $event })"/><TaxonomyBranch v-else :nodes="tree.roots" :expanded="expanded" :personal="tree.personal" @toggle="toggle" @open="open({ kind: 'group', id: $event })"/><p v-if="!tree.roots.length" class="empty">Leere Liste</p></template>
           <template v-else-if="view.kind === 'group'">
-            <ul v-if="group?.skills.length" class="skill-list"><li v-for="skill in group.skills" :key="skill.id"><button v-if="listStatus(skill.id)" class="status-link" :title="statusLinkTitle(listStatus(skill.id)!)" :aria-label="`${skill.name}: ${labels[listStatus(skill.id)!]} öffnen`" @click="openCategory(listStatus(skill.id)!, skill.id)"><StatusDot :color="tree.color(skill.id)" :tooltip="statusLinkTitle(listStatus(skill.id)!)" /></button><StatusDot v-else :color="tree.color(skill.id)" :personal="tree.personal"/><button class="text-link" @click="openPath(skill.id, person)">{{ skill.name }}</button></li></ul><p v-else class="empty">Leere Liste</p>
+            <ul v-if="group?.skills.length" class="skill-list"><li v-for="skill in group.skills" :key="skill.id"><button v-if="listStatus(skill.id)" class="status-link" :title="statusLinkTitle(listStatus(skill.id)!)" :aria-label="`${skill.name}: ${labels[listStatus(skill.id)!]} öffnen`" @click="openCategory(listStatus(skill.id)!, skill.id)"><StatusDot :color="tree.color(skill.id)" :tooltip="statusLinkTitle(listStatus(skill.id)!)" /></button><StatusDot v-else :color="tree.color(skill.id)" :personal="tree.personal"/><button class="text-link" :title="skill.description?.trim() || undefined" @click="openPath(skill.id, person)">{{ skill.name }}</button></li></ul><p v-else class="empty">Leere Liste</p>
           </template>
           <template v-else-if="view.kind === 'category'">
             <label v-if="view.status !== 'green'" class="distance-limit" title="Maximale Distanz zu Zielskills für Entwicklungskandidaten">Maximale Distanz <select aria-label="Maximale Distanz" :value="data.development.maximum_distance ?? 3" @change="load({ ...data.simulation, maximum_distance: Number(($event.target as HTMLSelectElement).value) })"><option v-for="n in 5" :key="n" :value="n">{{ n }}</option></select></label>

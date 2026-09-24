@@ -13,13 +13,13 @@ const names = (ids: number[]) => props.data.employees.filter(employee => ids.inc
   <p v-if="!skills.length" class="empty">Leere Liste</p>
   <table v-else-if="status === 'green'" class="green-table">
     <thead><tr><th>Skill-Bezeichnung</th><th>Mitarbeitende</th></tr></thead>
-    <tbody><tr v-for="skill in skills" :key="skill.id" :data-category-skill="skill.id" tabindex="-1"><td><button class="text-link" @click="emit('path', skill.id, null)">{{ skill.name }}</button></td><td>{{ names(skill.employee_ids) }}</td></tr></tbody>
+    <tbody><tr v-for="skill in skills" :key="skill.id" :data-category-skill="skill.id" tabindex="-1"><td><button class="text-link" :title="skill.description?.trim() || undefined" @click="emit('path', skill.id, null)">{{ skill.name }}</button></td><td>{{ names(skill.employee_ids) }}</td></tr></tbody>
   </table>
   <div v-else class="candidate-list">
     <article v-for="skill in skills" :key="skill.id" class="candidate-card" :data-category-skill="skill.id" tabindex="-1" :aria-label="skill.name">
       <div class="candidate-header">
         <StatusDot :color="skill.status" />
-        <button v-if="expanded.has(skill.id)" class="text-link" @click="emit('path', skill.id, person)">{{ skill.name }}</button>
+        <button v-if="expanded.has(skill.id)" class="text-link" :title="skill.description?.trim() || undefined" @click="emit('path', skill.id, person)">{{ skill.name }}</button>
         <button v-else class="candidate-title" @click="emit('toggle', skill.id)" :aria-expanded="false">{{ skill.name }}</button>
         <button class="disclosure" :aria-label="`${skill.name}: Details`" :aria-expanded="expanded.has(skill.id)" :aria-controls="`candidates-${skill.id}`" @click="emit('toggle', skill.id)">{{ expanded.has(skill.id) ? '−' : '⌄' }}</button>
       </div>

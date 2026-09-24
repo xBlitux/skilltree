@@ -32,6 +32,27 @@ Zusätzlich wurden Desktop-/Mobilansichten, Matrix, Taxonomie und Entwicklungs-D
 
 Nach der Skizze `src/res/Beispiel_Navigationsleiste.png` wurde die Navigation weiter vereinfacht: Organisationsname und Auswahlpfeil erscheinen als weißer Text ohne Kasten; „Start“ steht ebenfalls ohne Kasten oder Zusatzsymbol in der Leiste. Das native Auswahlmenü öffnet per Klick und schließt bei Außenklick oder Escape, wobei die gewählte Organisation erhalten bleibt. Darstellung zu G-04/G-05 und Navigation gemäß G-15/S-08; keine geänderte Fachregel. Erneut erfolgreich geprüft: `npm run build` sowie drei bestehende Edge-Browsertests (`npm run test:e2e -- e2e/dashboard.spec.ts e2e/extensions.spec.ts -g "dashboard|empty Soll|failed organisation"`). Zusätzliche Browserprüfung bestätigt Außenklick/Escape ohne Auswahlverlust und Desktop-/Mobilansichten ohne Seitenüberlauf bei 1440/390/320 Pixeln. Weitere Browser wurden für diesen Schritt nicht geprüft.
 
+## Skillbeschreibungen beim Hover (24.09.2026)
+
+Skillnamen in Skill-Liste, Matrix und grüner Ampelansicht zeigen vorhandene Beschreibungen als native Browser-Infotexte. In Rot/Gelb erscheinen diese nur am Skillnamen einer aufgeklappten Box. Fehlende, leere oder nur aus Leerraum bestehende Beschreibungen erzeugen keinen Infotext. Die vorhandenen Klickaktionen bleiben erhalten. Das vorhandene Datenbankfeld `skill.description` wird dafür lesend in `skills[]` und `taxonomy.skills[]` der Analyse-API übernommen. Darstellung zu F-07/A-07/A-08; API-Beispiel und Bedienregeln stehen bei UC-02/UC-05 im Use-Case-Dokument.
+
+Erfolgreich geprüft: `composer test` (33 Tests, 216 Assertions), `npm run build` sowie unter XAMPP/Edge `npm run test:e2e -- e2e/skill-descriptions.spec.ts e2e/development.spec.ts e2e/skill-map.spec.ts` (acht Tests). Der neue Browsertest prüft das API-Feld und verwendet für Leerraum/null/fehlende Beschreibungen ausschließlich synthetische Browserantworten. Stammdaten wurden nicht verändert. Die Anzeigeverzögerung und Gestaltung des Infotexts bestimmt der Browser; andere Browser und Touch-Hover wurden nicht geprüft.
+
+## Organisations-Dummy (24.09.2026)
+
+„Hinzufügen...“ steht immer am Ende der Organisationsauswahl. Die Option öffnet nur
+einen Hinweis auf zukünftige Erweiterbarkeit, geschlossen durch „Verstanden“,
+Außenklick oder Escape. Organisation, Simulation und Ansicht bleiben erhalten;
+der Dummy löst keinen API-Aufruf aus. Vorhandene Organisationen lassen sich weiterhin
+wechseln. Bezug: G-04, G-15/S-08 und UC-01/UC-10; keine Stammdatenpflege.
+
+Geprüft: `npm run build` erfolgreich; drei Edge-Browsertests unter XAMPP erfolgreich
+(`npm run test:e2e -- e2e/organisation-dummy.spec.ts e2e/development.spec.ts e2e/extensions.spec.ts -g "organisation dummy|failed organisation|four-level taxonomy"`).
+Abgedeckt: letzte Dropdownposition, wiederholtes Öffnen, alle drei Schließwege,
+Fokusrückgabe, Erhalt der Simulation/Matrix ohne API-Anfrage, echter Organisationswechsel,
+Fehler/Wiederholung sowie bisherige Skill-Warnung. Mobile Popupdarstellung visuell geprüft.
+Backend und Datenbank wurden nicht geändert; andere Browser wurden nicht erneut geprüft.
+
 ## Einstieg
 
 Die Anwendung vergleicht Aufgabenbedarf und Skillbestand einer vorbereiteten Organisationseinheit, zeigt eine Managementampel und ermittelt Entwicklungskandidaten. Die Taxonomie bietet seit dem freigegebenen Versuch vom 20.09.2026 einen aufklappbaren Gruppengraphen und das bisherige Inhaltsverzeichnis mit gemeinsamen Skill-Listen. Ein separater Entwicklungs-DAG bleibt Bestandteil des MVA. Die fachlichen Einzelregeln stehen im Katalog und in den Use-Cases.
