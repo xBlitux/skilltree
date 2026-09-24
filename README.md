@@ -6,6 +6,102 @@ Webbasiertes Minimum Viable Artifact zur Unterstützung von Personalbedarfs-, Wi
 **Technischer Stand:** Schritte 1–7 sind implementiert: Kernberechnung, Dashboard, hierarchische Taxonomie, Kategorieübersichten, Entwicklungskandidaten, allgemeiner/personenbezogener Entwicklungs-DAG sowie temporäre Simulation mit Zurück/Reset/Start. A-07 wurde auf ausdrücklichen Nutzerwunsch am 19.09.2026 zur skillbezogenen grünen Tabelle geändert. Die Anforderungsprüfung vom 20.09.2026 einschließlich offener Echtdaten-/Evaluationspunkte steht in [docs/Abnahme_Schritt7.md](docs/Abnahme_Schritt7.md).
 **Zeitbudget:** etwa 6–7 Tage Umsetzung.
 
+## Aktueller Datenbankstand: m:n-Zuordnungen (24.09.2026)
+
+Auf ausdrücklichen Nutzerwunsch wurde die **leere lokale Strukturkopie `rework_skilltree`**
+unter XAMPP/MariaDB 10.4.32 umgebaut. Die lokale `.env` verweist bereits auf diese
+Datenbank mit dem bereitgestellten Konto `db_architect`; Zugangsdaten wurden nicht
+geändert oder in Git aufgenommen. Andere Datenbanken wurden nicht verändert.
+Die Anwendung benötigt ab diesem Stand das neue Schema.
+
+- `organisation_unit_employee`: eindeutige Mitgliedschaften `(organisation_unit_id, employee_id)`.
+- `organisation_unit_task`: eindeutige Aufgabenzuordnungen `(organisation_unit_id, task_id)`.
+- `employee` und `task` enthalten keine `organisation_unit_id` mehr.
+- `employee_skill`: Primärschlüssel `(organisation_unit_id, employee_id, skill_id)`;
+  zusammengesetzter Fremdschlüssel auf die Mitgliedschaft. Derselbe Skill darf je
+  Person in mehreren Einheiten separat gespeichert werden. Fehlender Eintrag bedeutet
+  fehlenden direkten Besitz; implizite Voraussetzungen werden weiterhin hergeleitet.
+- `task_skill` bleibt global und gilt identisch in allen zugeordneten Einheiten.
+- `scenario_task` enthält ebenfalls `organisation_unit_id`. Zusammengesetzte
+  Fremdschlüssel stellen sicher, dass Szenario und Aufgabe derselben Einheit angehören.
+  Referenzierte Zuordnungen lassen sich nicht versehentlich löschen oder umhängen
+  (`RESTRICT`); abhängige Datensätze müssen zuerst ausdrücklich entfernt werden.
+
+**Eigene Daten einpflegen:** Organisationen, Personen und Aufgaben anlegen, danach
+die beiden Mitgliedschaftstabellen befüllen und erst dann die organisationsbezogenen
+Mitarbeiter-Skills. Aufgaben-Skills werden einmal je Aufgabe hinterlegt. Für Szenarien
+zuerst das organisationsgebundene Szenario anlegen, dann dessen Aufgaben mit derselben
+Organisations-ID zuordnen. Es gibt keine automatische Übernahme von Mitarbeiter-Skills
+beim Hinzufügen einer weiteren Mitgliedschaft. Einheiten dürfen zunächst leer sein.
+
+Aktueller, datenfreier Export für Workbench:
+[`database/24092026_Structure_rework_skilltree.sql`](database/24092026_Structure_rework_skilltree.sql).
+Die beiden älteren Exporte bleiben historische Referenzen. Der neue Export enthält
+keine `DROP TABLE`-Anweisungen und ist nur für eine leere Zieldatenbank gedacht.
+Der einmalige Umbau liegt unter `database/migrations/20260924_organisation_memberships.sql`;
+`php scripts/migrate-rework.php --apply` prüft das konkrete alte Schema und lehnt
+gefüllte oder bereits migrierte Datenbanken ab. MariaDB-DDL besitzt implizite Commits;
+die Ausgangsstruktur wurde deshalb vorab unter `.local/rework-before-*.sql` gesichert
+(von Git ausgeschlossen). `php scripts/migrate-rework.php --export` erzeugt den aktuellen
+Strukturexport; `php scripts/inspect-rework.php` zeigt Schema und Zeilenzahlen ohne Datenwerte.
+
+Die PHP-Analyse lädt Mitgliedschaften, direkten Besitz und Szenarien im ausgewählten
+Organisationskontext. API-Felder und Frontend-Bedienung bleiben kompatibel. Revisionen:
+**G-05/G-06, D-07/D-08**, synchron in Excel, erzeugter Lesefassung und Use-Cases.
+Abnahmebeispiel und API-Werte: Abschnitt „Vorher/Nachher“ im Use-Case-Dokument.
+
+Reproduzierbare Prüfungen im Projektstamm:
+
+```powershell
+composer test
+php scripts/check-rework.php
+php scripts/check-rework.php --browser
+powershell -NoProfile -File scripts/export-requirements.ps1 -Check
+```
+
+`check-rework.php` verlangt ausdrücklich die **vollständig leere `rework_skilltree`**.
+Es fügt synthetische Testdaten vorübergehend ein, prüft den bisherigen Abnahmebestand,
+m:n-Isolation und Constraints und entfernt danach ausschließlich seine Testzeilen,
+auch bei einem regulären Testfehler. Der Browserlauf benötigt laufendes Apache/MariaDB,
+Edge und einen aktuellen Build (`npm run build` in `frontend/`). Er führt die bestehenden
+Klicktests und anschließend den neuen Vorher-/Nachher-Test aus. Während dieses Laufs
+keine eigenen Daten einpflegen; nach Beginn der eigenen Datenpflege wird der Test
+absichtlich abgelehnt. Ein hart beendeter Prozess kann seine Bereinigung nicht ausführen.
+Der neue Browsertest wird außerhalb dieses Testablaufs übersprungen.
+
+Die Seed-Dateien und `extend-testdata-organisations.php` verwenden ebenfalls das neue
+Schema. Der historische `split-test-scenarios.php`-Umbau ist stillgelegt: Aus einer
+Aufgabe lässt sich bei m:n keine eindeutige Organisation mehr ableiten. Die bisherigen
+Sicherungen/Originaldatenbanken bleiben erhalten. `composer test:database` ist weiterhin
+der lesende Test für einen entsprechend vorbereiteten `testdata_skilltree` mit Lesekonto;
+für die aktuelle leere Strukturkopie dient `check-rework.php`. Die folgenden älteren
+Abschnitte beschreiben historische Datenbank- und Prüfstände.
+
+Am 24.09.2026 tatsächlich geprüft:
+
+- `composer test`: **33 Tests, 216 Assertions** erfolgreich (PHP 8.2.12, PHPUnit 11.5.56).
+- `php scripts/check-rework.php`: bisheriger Abnahmebestand inklusive aller 26
+  Skillbewertungen, Vererbung, Kandidaten und Simulation erfolgreich; zusätzlich
+  **51 Ziel-, Constraint- und m:n-Analyseprüfungen** erfolgreich unter MariaDB 10.4.32.
+- `npm test` in `frontend/`: **20 Tests** erfolgreich; `npm run build`: TypeScript/Vite
+  erfolgreich. Vite 7.3.6, Node 25.9.0, bestehende Abhängigkeiten verwendet.
+- XAMPP/Edge: **28 bestehende Browsertests** erfolgreich mit `check-rework.php --browser`;
+  der neue Vorher-/Nachher-Test anschließend erfolgreich mit
+  `php scripts/check-rework.php --browser-rework`. Beim ersten neuen Testlauf wurde
+  eine falsche Testannahme zum Auswahlwert „Keiner“ korrigiert; kein Anwendungsfehler.
+  `--browser-rework` wiederholt gezielt nur diesen Browserablauf mit temporären Daten.
+- PHP-Syntaxprüfung aller Projekt-PHP-Dateien, Excel-/Markdown-Abgleich aller **54**
+  Anforderungen und `git diff --check` erfolgreich. XAMPP-Datenbankstatus: HTTP 200,
+  `database: rework_skilltree`. Abschließende Zählung: **alle zwölf Tabellen leer**.
+
+Build, Frontendtests und Edge benötigten wegen `spawn EPERM` die Ausführung außerhalb
+der Sandbox. Noch nicht geprüft: die anschließend vom Nutzer einzupflegenden Echtdaten,
+deren fachliche Qualität und Leistungsgrenzen sowie andere Browser. Eine Migration
+bestehender gefüllter Datenbanken wurde weder ausgeführt noch freigegeben; der
+Migrationsbefehl lehnt sie ab. Ohne eingepflegte Organisation zeigt die Anwendung
+zunächst den bestehenden Fehlerzustand „Keine Organisationseinheit vorhanden“
+(Analyse-API HTTP 409); die Struktur ist bereit zur eigenen Datenpflege.
+
 ## Erweiterungen vom 21.09.2026
 
 Organisation oben wählen; Wechsel setzt die Ansicht vollständig zurück. **Matrix** bietet Mitarbeiter-Mehrfachauswahl und Pfadlänge. Im Simulationsmenü aktivieren bis zu **neun fortlaufend nummerierte Buttons** die Szenarien der gewählten Einheit; Hover zeigt den Szenarionamen. `scenario.organisation_unit_id` ist erforderlich. Die Beispieldaten enthalten drei eigene Szenarien je Einheit. Mitarbeiter-Dropdown und Simulationsdialog schließen auch per Außenklick, ohne die Auswahl zu verlieren. Rot/Gelb besitzen eine gemeinsame **maximale Distanz (1–5, Standard 3)**; weiter entfernte Kandidaten werden ausgeschlossen. Statuspunkte in Skill-Listen ohne Personenauswahl öffnen die Kategorie. Nicht geschätzte Pfade zeigen ein modales Popup mit unveränderter Scrollposition. Leere Taxonomiegruppen werden ausgeblendet.

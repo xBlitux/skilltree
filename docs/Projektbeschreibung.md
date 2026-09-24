@@ -21,6 +21,18 @@ Das Artefakt dient der explorativen Entscheidungsunterstützung. Eine Fertigkeit
 
 ## Datengrundlage
 
+**Freigegebene Revision vom 24.09.2026 (G-05/G-06, D-07/D-08):** Mitarbeitende und
+Aufgaben können über m:n-Zuordnungen mehreren Organisationseinheiten angehören.
+Vorher-/Nachher-Stände werden als getrennte vorbereitete Einheiten betrachtet;
+Personen und Aufgaben werden dafür nicht dupliziert. Direkte Mitarbeiter-Skills
+werden bewusst separat je Organisationszuordnung gespeichert. Aufgabenanforderungen
+bleiben organisationsübergreifend identisch. Die Auswertung verwendet ausschließlich
+den Besitz in der gewählten Einheit. Globale Taxonomie und Voraussetzungen gelten weiter.
+Aktuelle lokale Datenbank: `rework_skilltree`; datenfreier Strukturstand:
+`../database/24092026_Structure_rework_skilltree.sql`. Die älteren Exporte dokumentieren
+den bisherigen 1:n-Stand. Es wurden keine dauerhaften Beispieldaten angelegt;
+die geprüften eigenen Daten pflegt der Projektverantwortliche anschließend ein.
+
 Die relationale MariaDB enthält Organisationseinheit, Mitarbeitende, Aufgaben, Skills, Skillgruppen, direkte Skillzuordnungen sowie Entwicklungsvoraussetzungen. Taxonomiegruppen bilden die thematische Hierarchie; `skill_prerequisite` bildet separat die Voraussetzungen ab. Ein Eintrag `skill_id = Z`, `prerequisite_skill_id = A` bedeutet: A ist Voraussetzung von Z.
 
 LLM-gestützte Ableitung, ESCO-Normalisierung und Schätzung der Entwicklungspfade sind abgeschlossene Arbeiten der Datenerhebung. **Auch indirekte Voraussetzungen von Soll-Skills wurden geschätzt.** Ihre Einstufung bleibt bei Simulationsausschlüssen bestehen. Die genaue Verfügbarkeitsregel ist in S-01 und im Use-Case-Dokument festgehalten.

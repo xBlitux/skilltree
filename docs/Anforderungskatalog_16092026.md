@@ -1,6 +1,6 @@
 # Anforderungskatalog – Lesefassung
 
-**Stand:** Fachstand 18.09.2026 mit freigegebenen Revisionen bis 21.09.2026; 54 aktive Anforderungen, keine neuen IDs.
+**Stand:** Fachstand 18.09.2026 mit freigegebenen Revisionen bis 24.09.2026; 54 aktive Anforderungen, keine neuen IDs.
 
 Automatisch erzeugt aus `Anforderungskatalog_16092026.xlsx`. IDs, Prioritäten und Anforderungstexte sind identisch. Die Excel ist die führende Quelle; diese Datei nicht unabhängig bearbeiten. Zusammenführungen und Prioritätsänderungen sind in `Use-Cases_und_Entscheidungen(1).md`, Abschnitt 8, nachgewiesen.
 
@@ -26,7 +26,7 @@ Das Artefakt muss die Evaluation der zentralen Funktionen Soll-/Ist-Abgleich, Na
 
 ### G-06 — Wird
 
-Jeder Mitarbeiter wird genau einer Organisationseinheit zugeordnet; eine gleichzeitige Zuordnung zu mehreren Organisationseinheiten ist ausgeschlossen.
+Mitarbeitende und Aufgaben werden Organisationseinheiten über m:n-Zuordnungen zugeordnet. Derselbe Mitarbeiter und dieselbe Aufgabe können mehreren Einheiten angehören, ohne ihre Stammdatensätze zu duplizieren. Vorher- und Nachher-Stände werden als getrennte vorbereitete Organisationseinheiten betrachtet. Direkte Mitarbeiter-Skills werden je Organisationszuordnung separat gespeichert; derselbe Skill darf für dieselbe Person in mehreren Einheiten vorkommen, innerhalb einer Einheit jedoch nur einmal. Skillzuordnungen setzen eine gültige Organisationszuordnung der Person voraus.
 
 ### G-08 — Wird
 
@@ -50,7 +50,7 @@ Simulationszustände werden nicht dauerhaft gespeichert. Navigation und das Schl
 
 ### G-05 — Sollte
 
-Das Webinterface sollte eine funktionsfähige Auswahl der in der Datenbank vorhandenen Organisationseinheiten anbieten. Ein Wechsel lädt ausschließlich die Aufgaben und Mitarbeitenden der gewählten Einheit und setzt Simulation, Masken, Navigation, Ansicht und Distanzgrenze auf den Ausgangszustand zurück. Daraus entsteht keine Verwaltungsfunktion.
+Das Webinterface sollte eine funktionsfähige Auswahl der in der Datenbank vorhandenen Organisationseinheiten anbieten. Ein Wechsel lädt ausschließlich die zugeordneten Aufgaben und Mitarbeitenden sowie die für diese Einheit gespeicherten Mitarbeiter-Skills und setzt Simulation, Masken, Navigation, Ansicht und Distanzgrenze auf den Ausgangszustand zurück. Daraus entsteht keine Verwaltungsfunktion.
 
 ### G-12 — Darf nicht
 
@@ -64,11 +64,11 @@ Die gespeicherten Skillzuordnungen von Aufgaben und Mitarbeitenden müssen aussc
 
 ### D-07 — Muss
 
-Für jede eingeschlossene Aufgabe müssen ihre direkt zugeordneten Skills und sämtliche eindeutigen direkten und indirekten Voraussetzungen als benötigt gelten. Die impliziten Zuordnungen werden bei der Auswertung hergeleitet und nicht zusätzlich dauerhaft gespeichert.
+Für jede eingeschlossene Aufgabe müssen ihre direkt zugeordneten Skills und sämtliche eindeutigen direkten und indirekten Voraussetzungen als benötigt gelten. Die direkten Skillanforderungen einer Aufgabe gelten in allen zugeordneten Organisationseinheiten identisch. Die impliziten Zuordnungen werden bei der Auswertung hergeleitet und nicht zusätzlich dauerhaft gespeichert.
 
 ### D-08 — Muss
 
-Für jeden Mitarbeiter müssen seine direkt zugeordneten Skills und sämtliche eindeutigen direkten und indirekten Voraussetzungen als vorhanden gelten. Die impliziten Zuordnungen werden bei der Auswertung hergeleitet und nicht zusätzlich dauerhaft gespeichert.
+Für jeden eingeschlossenen Mitarbeiter müssen ausschließlich seine in der ausgewählten Organisationseinheit direkt zugeordneten Skills und sämtliche eindeutigen direkten und indirekten Voraussetzungen als vorhanden gelten. Skillzuordnungen derselben Person in anderen Einheiten werden nicht übernommen. Die impliziten Zuordnungen werden bei der Auswertung hergeleitet und nicht zusätzlich dauerhaft gespeichert.
 
 ### D-10 — Wird
 

@@ -8,6 +8,13 @@
 
 ## 1. Verbindliche Leitlinien
 
+**Freigegebene Revision vom 24.09.2026:** Die bisherige Ausschlussregel zur
+Mehrfachzuordnung (G-06, historisch G-07) ist auf Nutzeranweisung aufgehoben.
+G-05/G-06 und D-07/D-08 wurden in Excel aktualisiert und die Lesefassung daraus erzeugt.
+Mitarbeitende und Aufgaben dürfen mehreren Einheiten angehören; Mitarbeiter-Skills
+gelten separat je Einheit, Aufgaben-Skills unverändert global. Diese Revision hat
+Vorrang vor den historischen Aussagen zur 1:n-Zuordnung in Abschnitt 8.
+
 - Das MVA wertet vorbereitete Daten aus; keine Datenpflegeoberfläche, neue LLM-Schätzung oder persistente Simulation (D-06/D-10, A-13/A-15).
 - Taxonomie: aufklappbares Inhaltsverzeichnis mit Skill-Listen für Gruppen ohne Untergruppen. Der Taxonomiegraph entfällt vollständig aus dem aktuellen Umfang (F-02). Ein separater Entwicklungs-DAG bleibt erhalten.
 - Organisationsmaske bestimmt den Ausschnitt; Mitarbeitermaske bestimmt dessen personenbezogene Bewertung. Beide Masken bilden **keine Vereinigung** aus Soll-Skills und zusätzlichen persönlichen Ist-Skills (F-04/F-11).
@@ -303,6 +310,73 @@ Die Auswahl springt sofort auf die bisherige Organisation zurück. Ansicht, Mask
 Simulation und Berechnungsstand bleiben erhalten; der Dummy löst keinen API-Aufruf aus.
 Der Wechsel vorhandener Organisationseinheiten (G-04) und die Navigation (S-08/G-15)
 behalten ihr bisheriges Verhalten. Keine Anlagefunktion, API- oder Datenbankänderung.
+
+### Vorher/Nachher zu UC-01/UC-04 bis UC-10 (24.09.2026)
+
+Die vorhandene Organisationsauswahl behandelt vorbereitete Vorher-/Nachher-Einheiten
+wie jede andere Einheit. Ein Wechsel lädt deren Aufgabenmitgliedschaften,
+Mitarbeitermitgliedschaften und organisationsbezogenen direkten Besitz in einem
+konsistenten Datenbank-Snapshot. Er setzt Personenwahl, Simulation, Ansicht und
+Distanzgrenze wie bisher zurück. Derselbe Mitarbeiter darf in beiden Einheiten
+ausgewählt werden und unterschiedliche Besitzfarben, Distanzen und Kandidatenrollen
+haben. Stammdatensätze, Aufgabenanforderungen, Taxonomie und Voraussetzungskanten
+werden nicht für jeden Stand kopiert. Es gibt keine automatische Kopier-/Pflegefunktion.
+
+Datenvertrag: `organisation_unit_employee(organisation_unit_id, employee_id)` und
+`organisation_unit_task(organisation_unit_id, task_id)` besitzen eindeutige Paar-Schlüssel.
+`employee_skill(organisation_unit_id, employee_id, skill_id)` besitzt einen eindeutigen
+Dreifachschlüssel und referenziert die tatsächliche Mitgliedschaft. Alle drei IDs sind
+erforderlich. Dieselbe Skillzuordnung in einer zweiten Einheit ist ausdrücklich erlaubt;
+innerhalb einer Einheit ist ein Duplikat ausgeschlossen. Entfernen einer Skillzuordnung
+verändert die andere Einheit nicht; es gibt keinen Rückgriff auf deren Skillbestand.
+Mitgliedschaften ohne direkte Skills bleiben auswählbar. Referenzielle Integrität
+verhindert verwaiste Einträge. Löschen/Ändern referenzierter Eltern ist gesperrt,
+bis die abhängigen Zuordnungen ausdrücklich entfernt wurden.
+
+`scenario` bleibt genau einer Einheit zugeordnet. `scenario_task` benötigt zusätzlich
+deren `organisation_unit_id`; zusammengesetzte Fremdschlüssel auf Szenario und
+Aufgabenmitgliedschaft verhindern organisationsfremde Szenarioaufgaben auch bei
+direkter Datenpflege. Die globalen Anforderungen aus `task_skill` sind unverändert.
+
+API-Vertrag unverändert: `GET /api/analysis?organisation=101` beziehungsweise `102`.
+`organisation.id` bezeichnet den Kontext aller ausgegebenen Mitarbeiter-Skills;
+`employees[].direct_skill_ids` und `available_skill_ids` gelten nur dort. Die
+Mitarbeiter-ID und Aufgaben-ID bleiben zwischen Einheiten identisch. Gemeinsame
+Personen werden pro Skill und Einheit höchstens einmal gezählt. Fremde Ausschluss-IDs
+liefern HTTP 400, gültige Analysen HTTP 200 mit `Cache-Control: no-store`.
+Ohne Organisation liefert die leere Datenbank wie bisher HTTP 409 `invalid_dataset`;
+eine vorhandene Einheit ohne Mitgliedschaften liefert regulär 0/0/0.
+
+Reproduzierbares synthetisches Beispiel aus `scripts/check-rework.php`:
+Einheiten 101 „Test Vorher“ und 102 „Test Nachher“ teilen Personen 1/2 und Aufgaben 1/2.
+Beide Aufgaben benötigen zusammen direkt Skills 1/2/3/5; Voraussetzungen sind
+1 → 22/23, 3 → 22, 22/23 → 21 (hier als „benötigt“ gelesen).
+Soll enthält eindeutig `{1,2,3,5,21,22,23}`. Vorher besitzen beide Personen direkt nur
+22. Nachher besitzen beide direkt 1; Person 1 zusätzlich 22, um mehrfache Besitzwege
+und denselben direkten Skill in zwei Einheiten zu prüfen.
+
+| Prüfung | Vorher (101) | Nachher (102) |
+|---|---|---|
+| `summary.counts` (Rot/Gelb/Grün) | 5/0/2 | 3/0/4 |
+| `employees[0].direct_skill_ids` | `[22]` | `[1,22]` |
+| `employees[0].available_skill_ids` | `[21,22]` | `[1,21,22,23]` |
+| Skill 1: Träger | `[]`, rot | `[1,2]`, grün |
+| Skill 1: Entwicklung | Personen 1/2, jeweils Distanz 2 | Kein Kandidatenbedarf; persönlicher DAG Distanz 0 |
+| Person 1 temporär ausgeschlossen | Andere Einheit bleibt unverändert | Ampel 3/4/0 |
+
+Beide Einheiten haben ein eigenes Szenario mit derselben Aufgabe 1. Ihre jeweils
+eigenen Szenarien liefern `task_ids: [1]`. Der Prüfablauf umfasst außerdem leere
+Mitgliedschaften, eine leere Einheit, verbotene Duplikate, unbekannte Eltern,
+organisationsfremde Skills/Szenarioaufgaben und gesperrte Lösch-/Änderungsversuche.
+Der Browsertest prüft dieselben Besitzunterschiede in der Matrix, Kandidaten,
+persönliche Pfade, Simulation und das Zurückwechseln ohne Kontextübernahme.
+Alle Beispieldaten werden nur für den Test angelegt und anschließend entfernt.
+
+Geänderte Anforderungen: G-05/G-06, D-07/D-08. Geprüfte Folgewirkungen:
+A-01 bis A-05, A-09 bis A-13/A-15/A-16, F-09/F-11 und S-02/S-04/S-08.
+Die unveränderten fachlichen Abnahmebeispiele des bisherigen synthetischen Bestands
+werden zusätzlich auf dem neuen Schema geprüft. Prüfberichte und Befehle stehen
+im aktuellen Abschnitt der README.
 
 ## 6. Wireframes und ihre Geltung
 
