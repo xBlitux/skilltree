@@ -22,11 +22,16 @@ final class SimulationAnalysis
         $result = (new SkillAnalysis())->calculate($filtered);
         $result['development'] = (new DevelopmentAnalysis())->calculate($data, $result, $maximumDistance);
         $result['organisations'] = $data->organisations ?: [$data->organisation];
+        $graph = new SkillGraph(array_keys($data->skills), $data->prerequisites);
         $result['simulation'] = [
             'scenarios' => $data->scenarios,
             'excluded_task_ids' => $tasks, 'excluded_employee_ids' => $employees,
             // Include excluded choices so users can re-include them without another endpoint.
-            'tasks' => array_map(static fn (array $task): array => ['id' => $task['id'], 'name' => $task['name']], $data->tasks),
+            'tasks' => array_map(static fn (array $task): array => [
+                'id' => $task['id'], 'name' => $task['name'],
+                'direct_skill_ids' => $task['direct_skill_ids'],
+                'required_skill_ids' => $graph->expand($task['direct_skill_ids']),
+            ], $data->tasks),
             'employees' => array_map(static fn (array $employee): array => [
                 'id' => $employee['id'], 'first_name' => $employee['first_name'], 'last_name' => $employee['last_name'],
             ], $data->employees),

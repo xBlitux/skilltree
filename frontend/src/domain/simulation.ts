@@ -2,7 +2,7 @@ export interface SimulationFilters { excluded_task_ids: number[]; excluded_emplo
 export interface Simulation extends SimulationFilters {
   // task_ids lists the tasks excluded when this scenario is activated.
   scenarios?: { id: number; name: string; task_ids: number[] }[]
-  tasks: { id: number; name: string }[]
+  tasks: { id: number; name: string; direct_skill_ids: number[]; required_skill_ids: number[] }[]
   employees: { id: number; first_name: string; last_name: string }[]
 }
 export const emptyFilters = (): SimulationFilters => ({ excluded_task_ids: [], excluded_employee_ids: [] })

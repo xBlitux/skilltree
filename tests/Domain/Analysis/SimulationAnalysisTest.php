@@ -42,6 +42,11 @@ final class SimulationAnalysisTest extends TestCase
         self::assertCount(4, $none['taxonomy']['skills']);
         self::assertSame([1, 2, 3], $none['development']['estimated_skill_ids']);
         self::assertSame([1, 2], $none['simulation']['excluded_task_ids']);
+        // Exclusions retain both direct assignments and their transitive prerequisites.
+        self::assertSame([
+            ['id' => 1, 'name' => 'Aufgabe A', 'direct_skill_ids' => [3], 'required_skill_ids' => [1, 2, 3]],
+            ['id' => 2, 'name' => 'Aufgabe B', 'direct_skill_ids' => [3], 'required_skill_ids' => [1, 2, 3]],
+        ], $none['simulation']['tasks']);
         self::assertSame([], $none['development']['candidates']);
     }
 

@@ -11,6 +11,7 @@ import MaskIcon from './components/MaskIcon.vue'
 import CategoryOverview from './components/CategoryOverview.vue'
 import SimulationMenu from './components/SimulationMenu.vue'
 import PathWarning from './components/PathWarning.vue'
+import TaskAssignments from './components/TaskAssignments.vue'
 import brandLogo from '../../src/res/Zukunft-Logo.png'
 import robotoLicense from './assets/fonts/OFL.txt?url'
 const DevelopmentGraph = defineAsyncComponent(() => import('./components/DevelopmentGraph.vue'))
@@ -44,6 +45,7 @@ const heading = ref<HTMLElement>()
 const pathGraph = ref<{ reset: () => void }>()
 const details = ref(new Set<number>())
 const warning = ref('')
+const taskAssignmentsOpen = ref(false)
 const tree = computed(() => data.value ? taxonomyView(data.value, mask.value, person.value) : null)
 const group = computed(() => view.value.kind === 'group' ? tree.value?.nodes.get(view.value.id) : null)
 const title = computed(() => {
@@ -146,6 +148,7 @@ function reset() {
   void position()
 }
 function resetUi() {
+  taskAssignmentsOpen.value = false
   view.value = { kind: 'taxonomy' }; history.value = []; mask.value = true; person.value = null
   details.value = new Set(); warning.value = ''
   simulationOpen.value = false
@@ -202,7 +205,7 @@ onMounted(() => load())
           <button class="back-button" :disabled="!history.length" @click="back">← Zurück</button>
         </div>
         <div ref="panel" class="mainframe-content" tabindex="0" aria-label="Scrollbarer Inhaltsbereich">
-          <div class="view-heading"><p class="eyebrow">{{ view.kind === 'path' ? 'Entwicklungspfad' : view.kind === 'category' ? 'Organisationsbezogene Übersicht' : view.kind === 'group' ? 'Skill-Liste' : taxonomyMode === 'graph' ? 'Wissensgraph · Gruppen erkunden' : taxonomyMode === 'map' ? 'Skillmatrix · Wissensträger im Überblick' : 'Hierarchisches Inhaltsverzeichnis' }}</p><h2 ref="heading" tabindex="-1" :class="view.kind === 'category' ? `category-heading ${view.status}` : ''"><StatusDot v-if="group" :color="group.color" :personal="tree.personal" />{{ title }}</h2></div>
+          <div class="view-heading"><p class="eyebrow">{{ view.kind === 'path' ? 'Entwicklungspfad' : view.kind === 'category' ? 'Organisationsbezogene Übersicht' : view.kind === 'group' ? 'Skill-Liste' : taxonomyMode === 'graph' ? 'Wissensgraph · Gruppen erkunden' : taxonomyMode === 'map' ? 'Skillmatrix · Wissensträger im Überblick' : 'Hierarchisches Inhaltsverzeichnis' }}</p><h2 ref="heading" tabindex="-1" :class="view.kind === 'category' ? `category-heading ${view.status}` : ''"><StatusDot v-if="group" :color="group.color" :personal="tree.personal" />{{ title }}</h2><button v-if="view.kind === 'path'" class="task-assignment-button" aria-haspopup="dialog" @click="taskAssignmentsOpen = true">Aufgabenzuordnung</button></div>
           <div v-if="view.kind === 'taxonomy'" class="taxonomy-switch" role="group" aria-label="Taxonomieansicht"><button :aria-pressed="taxonomyMode === 'tree'" @click="switchTaxonomy('tree')">Baum</button><button :aria-pressed="taxonomyMode === 'graph'" @click="switchTaxonomy('graph')">Graph</button><button :aria-pressed="taxonomyMode === 'map'" @click="switchTaxonomy('map')">Matrix</button></div>
           <p v-if="!data.summary.required_skill_count" class="notice">Kein Soll-Bedarf vorhanden. Die vollständige Taxonomie bleibt zugänglich.</p>
           <p v-if="view.kind === 'taxonomy' || view.kind === 'group'" class="view-hint">{{ person !== null && !isMap ? 'Persönlicher Besitz: Grün = vorhanden, Rot = nicht vorhanden.' : 'Organisationsbewertung: Rot vor Gelb vor Grün; ohne Soll-Bedarf neutral.' }} {{ mask && data.required_skill_ids.length ? 'Nur benötigte Skills.' : 'Gesamter Skillkatalog.' }}</p>
@@ -219,6 +222,7 @@ onMounted(() => load())
         </div>
         <div class="frame-footer"><span>{{ view.kind === 'category' ? `${category.length} Skills` : view.kind === 'path' ? 'DAG verschieben · Zoomen · Pfadumfang wählen' : isMap ? 'Skillmatrix · Status und Pfade öffnen' : 'Gruppen aufklappen · Untergruppe öffnen' }}</span><button @click="reset" title="Ansicht zurücksetzen; Masken bleiben unverändert">↺ Reset</button></div>
       </section>
+      <TaskAssignments v-if="taskAssignmentsOpen && view.kind === 'path'" :target="view.id" :skill-name="title" :organisation-name="data.organisation.name" :simulation="data.simulation" @close="taskAssignmentsOpen = false" />
       <PathWarning v-if="warning" @close="closeWarning"/>
       <SimulationMenu v-if="simulationOpen" :simulation="data.simulation" :busy="busy" :error="error" @toggle="simulate" @change="load" @retry="load(requested)" @close="simulationOpen = false" />
     </template>

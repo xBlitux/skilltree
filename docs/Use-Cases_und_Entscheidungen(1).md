@@ -443,3 +443,50 @@ Die zusammengeführten IDs bleiben für historische Verweise nachvollziehbar, si
 Weitere Präzisierungen betreffen insbesondere D-06/D-10 (keine Datenpflege oder laufende LLM-Schätzung), F-02 (Inhaltsverzeichnis), F-06 (Farbvererbung), A-12 (unbesetzte Plätze als unabhängiger Empfehlungsgrund), S-01 (geschätzte implizite Soll-Skills), S-02 (Zielskill zählt mit) und S-05 (Kürzung pro Zweig). Details zu Bedienung und Sonderfällen wurden in vorhandene Anforderungen oder die Use-Cases aufgenommen, nicht als Vielzahl neuer Zeilen.
 
 Der ursprüngliche ausführliche Übergabetext und ältere Katalogstände können für die Bachelorarbeit privat archiviert werden. Sie sind keine zweite aktuelle Spezifikation.
+
+
+### Aufgabenzuordnung im Entwicklungspfad (25.09.2026, revidiert)
+
+Freigegebene Ergänzung zu S-04/S-07, unter Beachtung von G-05, D-07 und A-13:
+Oben rechts im allgemeinen sowie personenbezogenen Entwicklungspfad öffnet
+„Aufgabenzuordnung“ ein modales Popup für genau den Zielskill der Überschrift.
+Auf ausdrückliche Nutzerrevision ersetzt die direkte **und implizite** Zuordnung
+die zunächst gewünschte Beschränkung auf direkte Beziehungen.
+Die Liste enthält Aufgaben der ausgewählten Organisation, deren direkte Skills
+oder deren transitiv hergeleitete Voraussetzungen den Zielskill enthalten.
+Es gilt dieselbe Richtung wie beim Soll-Bedarf nach D-07, nicht eine beidseitige
+Ausbreitung entlang beliebiger Graphkanten. Jede Aufgabe erscheint genau einmal,
+auch bei direkter und mehrfacher impliziter Zuordnung. Personenwahl,
+Organisationsmaske und Pfadumfang verändern die Liste nicht.
+Ausgeschlossene Aufgaben bleiben sichtbar mit „in Simulation ausgeschlossen“.
+Die Beschriftung lautet „Aufgabe [ID] • [Aufgabenname]“, bei leerem Namen
+„Aufgabe [ID] • kein Aufgabenname hinterlegt“. Ohne Treffer erscheint ein Leerhinweis.
+Der Textbereich scrollt bei Überlänge, auch per Tastatur; Überschrift und
+Schließen-Knopf bleiben sichtbar. Schließen, Escape und Außenklick schließen
+das Popup mit Fokusrückgabe; Ansicht, Auswahl und Scrollposition bleiben erhalten.
+Referenz: `../src/res/Beispiel_Aufgabenzuordnung.png`.
+
+API-Ergänzung: `GET /api/analysis` liefert in `simulation.tasks[]` sowohl
+`direct_skill_ids` als auch `required_skill_ids` (direkte Skills einschließlich
+aller eindeutigen Voraussetzungen). Beide beziehen sich auf den ungefilterten
+Aufgabenbestand der gewählten Einheit, sodass ausgeschlossene Aufgaben erhalten
+bleiben. Die Anzeige filtert anhand von `required_skill_ids`.
+Synthetisches Beispiel: `{"id": 38, "name": "Testaufgabe", "direct_skill_ids": [277],
+"required_skill_ids": [277, 417]}`. Skill 417 ist Voraussetzung von 277; beim
+Zielskill 417 erscheint daher „Aufgabe 38 • Testaufgabe“, bei
+`excluded_task_ids: [38]` zusätzlich der Ausschlusshinweis.
+Weitere Voraussetzungen werden transitiv berücksichtigt; aus einer Aufgabe,
+die nur Skill 417 benötigt, entsteht umgekehrt kein Bedarf an Skill 277.
+Kein zusätzlicher Endpunkt und keine Datenbankänderung.
+
+Abnahme: allgemeiner/persönlicher Pfad mit identischer Liste, direkte und implizite
+Beziehung ohne Duplikate, ID plus Name/Leerersatz, Ausschlusskennzeichnung,
+Organisationswechsel, Leerzustand und alle drei Schließwege mit Fokusrückgabe.
+Der Browser prüft zusätzlich 63 Einträge bei 390 und 1440 Pixeln: Inhalt scrollbar,
+letzter Eintrag per Tastatur erreichbar und Schließen-Knopf weiterhin sichtbar.
+Lesend bestätigt: Datenbankkante `skill_id=277, prerequisite_skill_id=417`;
+34 Aufgabenmitgliedschaften mit direktem Skill 277 erscheinen auch bei Skill 417.
+Alle impliziten Zuordnungen beider Einheiten stimmen mit einer unabhängigen
+rekursiven SQL-Abfrage überein, auch nach vollständigem Simulationsausschluss.
+Die reale Aufgabe 38 hat derzeit keinen Namen und keine Beschreibung; diese
+fehlenden Inhalte werden weder ergänzt noch aus anderen Feldern erfunden.

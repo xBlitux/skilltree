@@ -1,6 +1,6 @@
 # Anforderungskatalog – Lesefassung
 
-**Stand:** Fachstand 18.09.2026 mit freigegebenen Revisionen bis 24.09.2026; 54 aktive Anforderungen, keine neuen IDs.
+**Stand:** Fachstand 18.09.2026 mit freigegebenen Revisionen bis 25.09.2026; 54 aktive Anforderungen, keine neuen IDs.
 
 Automatisch erzeugt aus `Anforderungskatalog_16092026.xlsx`. IDs, Prioritäten und Anforderungstexte sind identisch. Die Excel ist die führende Quelle; diese Datei nicht unabhängig bearbeiten. Zusammenführungen und Prioritätsänderungen sind in `Use-Cases_und_Entscheidungen(1).md`, Abschnitt 8, nachgewiesen.
 
@@ -210,7 +210,7 @@ Entwicklungskandidaten müssen für einen Zielskill nach Fertigkeitsdistanz aufs
 
 ### S-04 — Muss
 
-Die Auswahl eines Kandidaten aus einer Handlungsempfehlung oder der Aufruf eines Skills mit ausgewählter Person muss den personenbezogenen verbleibenden Entwicklungspfad zum Zielskill öffnen, sofern der Skill gemäß S-01 geschätzt ist. In der Pfadansicht muss der Personenbezug gewechselt oder über Allgemein aufgehoben werden können.
+Die Auswahl eines Kandidaten aus einer Handlungsempfehlung oder der Aufruf eines Skills mit ausgewählter Person muss den personenbezogenen verbleibenden Entwicklungspfad zum Zielskill öffnen, sofern der Skill gemäß S-01 geschätzt ist. In der Pfadansicht muss der Personenbezug gewechselt oder über Allgemein aufgehoben werden können. Die personenbezogene Pfadansicht bietet dieselbe zielskillbezogene Aufgabenzuordnung wie die allgemeine Ansicht gemäß S-07; Personenauswahl und Pfadumfang verändern diese Liste nicht.
 
 ### S-05 — Muss
 
@@ -222,7 +222,7 @@ Bei Personenbezug muss zwischen Verbleibend und Vollständig umgeschaltet werden
 
 ### S-07 — Muss
 
-Ein Skillaufruf ohne ausgewählte Person muss bei Verfügbarkeit gemäß S-01 den vollständigen allgemeinen DAG ohne personenbezogene Besitzbewertung öffnen. Die Organisationsmaske darf keine Voraussetzungen aus Berechnung oder fachlichem Umfang des gewählten DAGs entfernen.
+Ein Skillaufruf ohne ausgewählte Person muss bei Verfügbarkeit gemäß S-01 den vollständigen allgemeinen DAG ohne personenbezogene Besitzbewertung öffnen. Die Organisationsmaske darf keine Voraussetzungen aus Berechnung oder fachlichem Umfang des gewählten DAGs entfernen. Der Knopf „Aufgabenzuordnung“ öffnet ein modales Popup mit den Aufgaben, die genau den Zielskill direkt oder als direkte beziehungsweise indirekte Voraussetzung ihrer zugeordneten Skills benötigen, ausschließlich innerhalb der ausgewählten Organisationseinheit. Jede Aufgabe erscheint einmal, auch bei mehreren Vererbungswegen. Temporär ausgeschlossene Aufgaben bleiben mit dem Hinweis „in Simulation ausgeschlossen“ sichtbar. Die Anzeige lautet „Aufgabe [ID] • [Aufgabenname]“; bei leerem Namen steht „kein Aufgabenname hinterlegt“. Ohne Zuordnung erscheint ein Leerhinweis. Der Inhalt ist bei Überlänge scrollbar; Überschrift und Schließen-Knopf bleiben sichtbar. Schließen erhält Ansicht, Auswahl und Scrollposition.
 
 ### S-08 — Muss
 

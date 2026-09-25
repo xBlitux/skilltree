@@ -6,6 +6,44 @@ Webbasiertes Minimum Viable Artifact zur Unterstützung von Personalbedarfs-, Wi
 **Technischer Stand:** Schritte 1–7 sind implementiert: Kernberechnung, Dashboard, hierarchische Taxonomie, Kategorieübersichten, Entwicklungskandidaten, allgemeiner/personenbezogener Entwicklungs-DAG sowie temporäre Simulation mit Zurück/Reset/Start. A-07 wurde auf ausdrücklichen Nutzerwunsch am 19.09.2026 zur skillbezogenen grünen Tabelle geändert. Die Anforderungsprüfung vom 20.09.2026 einschließlich offener Echtdaten-/Evaluationspunkte steht in [docs/Abnahme_Schritt7.md](docs/Abnahme_Schritt7.md).
 **Zeitbudget:** etwa 6–7 Tage Umsetzung.
 
+## Aufgabenzuordnung im Entwicklungspfad (25.09.2026, revidiert)
+
+**Aufgabenzuordnung** zeigt im allgemeinen und personenbezogenen Entwicklungspfad
+alle Aufgaben der gewählten Einheit, die dessen Zielskill direkt oder als
+transitive Voraussetzung benötigen. Die zuvor gewünschte Beschränkung auf direkte
+Beziehungen wurde auf Nutzeranweisung aufgehoben. Jede Aufgabe erscheint einmal;
+Simulationsausschlüsse bleiben mit Hinweis sichtbar. Anzeige:
+„Aufgabe [ID] • [Aufgabenname]“, bei leerem Namen „kein Aufgabenname hinterlegt“.
+Der Textbereich ist scrollbar, Überschrift und Schließen-Knopf bleiben sichtbar.
+Schließen, Escape und Außenklick erhalten den Ansichtskontext mit Fokusrückgabe.
+S-04/S-07, Excel, erzeugte Lesefassung und Use-Cases sind synchron angepasst.
+API: `simulation.tasks[].required_skill_ids` ergänzt die direkten Zuordnungen
+um sämtliche Voraussetzungen, auch für ausgeschlossene Aufgaben.
+
+Tatsächlich geprüft unter PHP 8.2.12 / PHPUnit 11.5.56 und XAMPP/Edge:
+
+- `composer test`: 33 Tests, 217 Assertions erfolgreich, einschließlich transitiver
+  Voraussetzungen ausgeschlossener Aufgaben.
+- `npm run build` in `frontend/`: TypeScript/Vite 7.3.6 erfolgreich.
+- `npm run test:e2e -- e2e/task-assignments.spec.ts e2e/scenario-exclusions.spec.ts`:
+  zwei erfolgreiche Tests mit synthetischen API-Antworten. Direkte/implizite
+  Zuordnungen, eindeutige Aufgaben, ID plus Name/Leerersatz, Personenwechsel,
+  Simulation, Organisationswechsel, Leerhinweis und Schließwege geprüft.
+  63 Einträge bei 390/1440 Pixeln: Scrollen bis zum letzten Eintrag per Tastatur,
+  sichtbarer Schließen-Knopf und kein horizontaler Seitenüberlauf.
+- Lesender Abgleich über `.env`: implizite Beziehungen beider Organisationen
+  stimmen mit einer unabhängigen rekursiven SQL-Abfrage überein, einschließlich
+  ausgeschlossener Aufgaben. Beispiel 277 → Voraussetzung 417 für 34
+  Aufgabenmitgliedschaften bestätigt. Keine Stammdaten geändert.
+- `powershell -NoProfile -File scripts/export-requirements.ps1 -Check`:
+  54 Anforderungen stimmen mit Excel überein; `git diff --check` erfolgreich.
+
+Build und Browser liefen wegen der bekannten `spawn EPERM`-Sperre außerhalb der
+Sandbox. Andere Browser und die fachliche Qualität anonymisierter Inhalte wurden
+nicht geprüft. Aufgabe 38 hat aktuell weder Namen noch Beschreibung; deshalb
+erscheint der Leerersatz. Zum Ausprobieren `http://localhost/skilltree/public/`
+mit **Strg+F5** neu laden; der aktuelle Build liegt unter `public/`.
+
 ## Szenarien als Aufgabenausschlüsse (24.09.2026)
 
 Auf Nutzeranweisung gilt für A-13: `scenario_task` enthält die beim Aktivieren eines
